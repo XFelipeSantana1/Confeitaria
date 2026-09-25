@@ -5,7 +5,7 @@ import { useAviso } from "./hooks/useAviso";
 import { montarLinkWhats, montarMensagemPedido } from "./lib/mensagemWhats";
 import { determinarEstadoApi } from "./lib/estadoApi";
 import { Cabecalho } from "./components/Cabecalho";
-import { Hero } from "./components/Hero";
+import { Abertura } from "./components/Abertura";
 import { FaixaRolante } from "./components/FaixaRolante";
 import { SecaoCardapio } from "./components/SecaoCardapio";
 import { SecaoInformacoes } from "./components/SecaoInformacoes";
@@ -88,7 +88,7 @@ export default function App(): JSX.Element {
         aoAbrirConfiguracoes={() => definirConfigAberto(true)}
       />
 
-      <Hero
+      <Abertura
         totalProdutos={produtos.length}
         totalCategorias={categorias.length}
         aoComoFunciona={() => definirAjudaAberta(true)}

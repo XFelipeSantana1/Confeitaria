@@ -59,7 +59,7 @@ export function CardDestaque({
           {produto.categoria}
         </span>
         <h3 className="font-display text-3xl font-bold md:text-4xl">{produto.nome}</h3>
-        <p className="max-w-prose font-corpo text-sm leading-relaxed text-stone-600">
+        <p className="max-w-prose font-corpo text-sm leading-relaxed text-textoSuave">
           {produto.descricao}
         </p>
         <div className="mt-1 flex flex-wrap items-center gap-4">
@@ -67,7 +67,7 @@ export function CardDestaque({
             {formatarMoeda(produto.preco)}
           </span>
           {!disponivel ? (
-            <span className="font-corpo text-sm font-semibold text-stone-400">
+            <span className="font-corpo text-sm font-semibold text-textoSuave/70">
               Sem estoque no momento
             </span>
           ) : quantidadeNaSacola === 0 ? (

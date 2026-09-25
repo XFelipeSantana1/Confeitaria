@@ -86,7 +86,7 @@ export function ModalConfiguracoes({
           <button
             onClick={aoFechar}
             aria-label="Fechar configurações"
-            className="grid h-10 w-10 place-items-center rounded-xl border border-borda hover:-translate-y-0.5"
+            className="grid h-10 w-10 place-items-center rounded-xl border border-borda hover:-translate-y-0.5 transition-colors"
           >
             <X size={18} />
           </button>
@@ -100,7 +100,7 @@ export function ModalConfiguracoes({
             className="rounded-xl border border-borda px-3.5 py-2.5 font-corpo text-sm font-normal"
           />
         </label>
-        <p className="-mt-1 text-xs font-normal text-stone-500">
+        <p className="-mt-1 text-xs font-normal text-textoSuave">
           Vale com ou sem o <code>/api</code> no final — a vitrine completa sozinha.
         </p>
         <label className="flex flex-col gap-1.5 text-[13px] font-bold">
@@ -121,7 +121,7 @@ export function ModalConfiguracoes({
             <PlugZap size={17} /> Testar API
           </Botao>
         </div>
-        <p className="rounded-2xl border border-dashed border-borda bg-creme p-3 text-[13px] leading-relaxed text-stone-600">
+        <p className="rounded-2xl border border-dashed border-borda bg-creme p-3 text-[13px] leading-relaxed text-textoSuave">
           <b>Como testar:</b> suba o backend (<code>npm run dev</code> na pasta{" "}
           <code>backend</code>) e abra esta vitrine com <code>npm run dev</code>{" "}
           aqui na <code>vitrine-cliente</code>.

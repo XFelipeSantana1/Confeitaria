@@ -2,6 +2,14 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Foco de teclado visível: sem isso, quem navega por Tab não enxerga onde
+   está. Só aparece no teclado (`:focus-visible`), então o mouse não vê. */
+:focus-visible {
+  outline: 2px solid #c4622d;
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
 body {
   margin: 0;
   font-family: "DM Sans", system-ui, sans-serif;

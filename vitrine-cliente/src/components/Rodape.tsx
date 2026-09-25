@@ -52,7 +52,7 @@ export function Rodape({ secoes, aoAbrirConfiguracoes }: PropriedadesRodape): JS
           </p>
           <button
             onClick={aoAbrirConfiguracoes}
-            className="mt-3 text-sm font-bold text-creme underline decoration-dourado decoration-2 underline-offset-4 hover:text-dourado"
+            className="mt-3 text-sm font-bold text-creme underline decoration-dourado decoration-2 underline-offset-4 hover:text-dourado transition-colors"
           >
             trocar API / WhatsApp
           </button>

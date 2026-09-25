@@ -46,7 +46,7 @@ export function ItemSacola({
       </div>
       <div className="min-w-0 flex-1">
         <b className="block truncate font-corpo text-sm">{produto.nome}</b>
-        <span className="text-xs text-stone-500">
+        <span className="text-xs text-textoSuave">
           {formatarMoeda(produto.preco)} cada ·{" "}
           <b>{formatarMoeda(produto.preco * quantidade)}</b>
         </span>
@@ -55,7 +55,7 @@ export function ItemSacola({
         <button
           onClick={() => aoAlterarQuantidade(produto.id, -1)}
           aria-label={`Tirar um ${produto.nome} da sacola`}
-          className="grid h-7 w-7 place-items-center rounded-full border border-borda bg-white font-bold hover:bg-tinta hover:text-white"
+          className="grid h-7 w-7 place-items-center rounded-full border border-borda bg-white font-bold hover:bg-tinta hover:text-white transition-colors"
         >
           −
         </button>
@@ -63,7 +63,7 @@ export function ItemSacola({
         <button
           onClick={() => aoAlterarQuantidade(produto.id, 1)}
           aria-label={`Colocar mais um ${produto.nome} na sacola`}
-          className="grid h-7 w-7 place-items-center rounded-full border border-borda bg-white font-bold hover:bg-tinta hover:text-white"
+          className="grid h-7 w-7 place-items-center rounded-full border border-borda bg-white font-bold hover:bg-tinta hover:text-white transition-colors"
         >
           +
         </button>
@@ -71,7 +71,7 @@ export function ItemSacola({
           onClick={() => aoRemover(produto.id)}
           aria-label={`Remover ${produto.nome} da sacola`}
           title="Remover"
-          className="grid h-7 w-7 place-items-center rounded-full text-stone-400 hover:bg-rose-50 hover:text-rose-600"
+          className="grid h-7 w-7 place-items-center rounded-full text-textoSuave/70 hover:bg-rose-50 hover:text-rose-600 transition-colors"
         >
           <Trash2 size={15} />
         </button>

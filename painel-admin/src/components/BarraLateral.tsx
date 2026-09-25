@@ -63,7 +63,7 @@ export function BarraLateral(): JSX.Element {
           onClick={sair}
           aria-label="Sair do painel"
           title="Sair"
-          className="grid h-9 w-9 place-items-center rounded-xl hover:bg-white/10"
+          className="grid h-9 w-9 place-items-center rounded-xl hover:bg-white/10 transition-colors"
         >
           <LogOut size={17} />
         </button>

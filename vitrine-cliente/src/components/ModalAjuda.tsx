@@ -24,7 +24,7 @@ export function ModalAjuda({ aberto, aoFechar }: PropriedadesModalAjuda): JSX.El
           <button
             onClick={aoFechar}
             aria-label="Fechar ajuda"
-            className="grid h-10 w-10 place-items-center rounded-xl border border-borda hover:-translate-y-0.5"
+            className="grid h-10 w-10 place-items-center rounded-xl border border-borda hover:-translate-y-0.5 transition-colors"
           >
             <X size={18} />
           </button>

@@ -47,13 +47,13 @@ export function TabelaInsumos({
                 <td className="px-4 py-3 text-tinta">R$ {insumo.custo_unitario.toFixed(2)}</td>
                 <td className="px-4 py-3">
                   <span className="flex justify-end gap-1">
-                    <button onClick={() => aoMovimentar(insumo)} aria-label={`Movimentar ${insumo.nome}`} title="Registrar entrada/baixa" className="grid h-9 w-9 place-items-center rounded-xl text-carameloForte hover:bg-areia">
+                    <button onClick={() => aoMovimentar(insumo)} aria-label={`Movimentar ${insumo.nome}`} title="Registrar entrada/baixa" className="grid h-9 w-9 place-items-center rounded-xl text-carameloForte hover:bg-areia transition-colors">
                       <PackagePlus size={17} />
                     </button>
-                    <button onClick={() => aoEditar(insumo)} aria-label={`Editar ${insumo.nome}`} title="Editar" className="grid h-9 w-9 place-items-center rounded-xl text-textoSuave hover:bg-areia hover:text-tinta">
+                    <button onClick={() => aoEditar(insumo)} aria-label={`Editar ${insumo.nome}`} title="Editar" className="grid h-9 w-9 place-items-center rounded-xl text-textoSuave hover:bg-areia hover:text-tinta transition-colors">
                       <Pencil size={16} />
                     </button>
-                    <button onClick={() => aoExcluir(insumo)} aria-label={`Remover ${insumo.nome}`} title="Remover" className="grid h-9 w-9 place-items-center rounded-xl text-stone-400 hover:bg-rose-50 hover:text-rose-600">
+                    <button onClick={() => aoExcluir(insumo)} aria-label={`Remover ${insumo.nome}`} title="Remover" className="grid h-9 w-9 place-items-center rounded-xl text-stone-400 hover:bg-rose-50 hover:text-rose-600 transition-colors">
                       <Trash2 size={16} />
                     </button>
                   </span>

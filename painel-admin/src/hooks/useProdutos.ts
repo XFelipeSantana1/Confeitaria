@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import type { Categoria, Insumo, ProdutoAdmin } from "../types";
+import type { Categoria, Insumo, ItemFicha, ProdutoAdmin } from "../types";
 import {
   ErroApi,
   atualizarProduto,
@@ -14,6 +14,22 @@ import {
 
 // CRUD de produtos + ficha técnica + listas de apoio (categorias e insumos
 // para os selects). Recarrega após cada escrita: dado fresco no painel.
+// Dados de escrita do formulário de produto: usados no criar e no atualizar.
+export interface DadosProdutoBasico {
+  nome?: string;
+  descricao?: string | null;
+  preco?: number;
+  categoria_id?: number | null;
+  imagem_url?: string | null;
+  ativo?: boolean;
+}
+
+export interface DadosNovoProduto extends DadosProdutoBasico {
+  nome: string;
+  preco: number;
+  ficha_tecnica: ItemFicha[];
+}
+
 export function useProdutos(token: string | null): {
   produtos: ProdutoAdmin[];
   categorias: Categoria[];
@@ -22,34 +38,11 @@ export function useProdutos(token: string | null): {
   erro: string | null;
   precisaLogin: boolean;
   buscarNovamente: () => void;
-  criar: (dados: {
-    nome: string;
-    descricao?: string;
-    preco: number;
-    categoria_id?: number | null;
-    imagem_url?: string;
-    ficha_tecnica: Array<{ insumo_id: number; quantidade_necessaria: number }>;
-  }) => Promise<number>;
-  atualizar: (
-    id: number,
-    dados: {
-      nome?: string;
-      descricao?: string | null;
-      preco?: number;
-      categoria_id?: number | null;
-      imagem_url?: string | null;
-      ativo?: boolean;
-    },
-  ) => Promise<void>;
-  salvarFicha: (
-    id: number,
-    ficha: Array<{ insumo_id: number; quantidade_necessaria: number }>,
-  ) => Promise<void>;
+  criar: (dados: DadosNovoProduto) => Promise<number>;
+  atualizar: (id: number, dados: DadosProdutoBasico) => Promise<void>;
+  salvarFicha: (id: number, ficha: ItemFicha[]) => Promise<void>;
   remover: (id: number) => Promise<void>;
-  carregarFicha: (id: number) => Promise<{
-    produto: ProdutoAdmin;
-    ficha: Array<{ insumo_id: number; quantidade_necessaria: number }>;
-  }>;
+  carregarFicha: (id: number) => Promise<{ produto: ProdutoAdmin; ficha: ItemFicha[] }>;
 } {
   const [produtos, definirProdutos] = useState<ProdutoAdmin[]>([]);
   const [categorias, definirCategorias] = useState<Categoria[]>([]);
@@ -89,40 +82,20 @@ export function useProdutos(token: string | null): {
     buscar();
   }, [buscar]);
 
-  async function criar(dados: {
-    nome: string;
-    descricao?: string;
-    preco: number;
-    categoria_id?: number | null;
-    imagem_url?: string;
-    ficha_tecnica: Array<{ insumo_id: number; quantidade_necessaria: number }>;
-  }): Promise<number> {
+  async function criar(dados: DadosNovoProduto): Promise<number> {
     if (!token) throw new Error("Sem sessão.");
     const criado = await criarProduto(token, dados);
     await buscar();
     return criado.id;
   }
 
-  async function atualizar(
-    id: number,
-    dados: {
-      nome?: string;
-      descricao?: string | null;
-      preco?: number;
-      categoria_id?: number | null;
-      imagem_url?: string | null;
-      ativo?: boolean;
-    },
-  ): Promise<void> {
+  async function atualizar(id: number, dados: DadosProdutoBasico): Promise<void> {
     if (!token) return;
     await atualizarProduto(token, id, dados);
     await buscar();
   }
 
-  async function salvarFicha(
-    id: number,
-    ficha: Array<{ insumo_id: number; quantidade_necessaria: number }>,
-  ): Promise<void> {
+  async function salvarFicha(id: number, ficha: ItemFicha[]): Promise<void> {
     if (!token) return;
     await salvarFichaTecnica(token, id, ficha);
     await buscar();
@@ -134,10 +107,7 @@ export function useProdutos(token: string | null): {
     await buscar();
   }
 
-  async function carregarFicha(id: number): Promise<{
-    produto: ProdutoAdmin;
-    ficha: Array<{ insumo_id: number; quantidade_necessaria: number }>;
-  }> {
+  async function carregarFicha(id: number): Promise<{ produto: ProdutoAdmin; ficha: ItemFicha[] }> {
     if (!token) throw new Error("Sem sessão.");
     const { produto, ficha } = await obterProdutoAdmin(token, id);
     return {

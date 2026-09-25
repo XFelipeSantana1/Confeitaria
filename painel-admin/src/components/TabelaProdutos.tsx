@@ -59,10 +59,10 @@ export function TabelaProdutos({
                   <button onClick={() => aoAlternarAtivo(produto)} aria-label={produto.ativo ? `Ocultar ${produto.nome} da vitrine` : `Mostrar ${produto.nome} na vitrine`} title="Ligar/desligar na vitrine" className={`grid h-9 w-9 place-items-center rounded-xl hover:bg-areia ${produto.ativo ? "text-green-700" : "text-stone-400"}`}>
                     <Power size={16} />
                   </button>
-                  <button onClick={() => aoEditar(produto)} aria-label={`Editar ${produto.nome}`} title="Editar" className="grid h-9 w-9 place-items-center rounded-xl text-textoSuave hover:bg-areia hover:text-tinta">
+                  <button onClick={() => aoEditar(produto)} aria-label={`Editar ${produto.nome}`} title="Editar" className="grid h-9 w-9 place-items-center rounded-xl text-textoSuave hover:bg-areia hover:text-tinta transition-colors">
                     <Pencil size={16} />
                   </button>
-                  <button onClick={() => aoExcluir(produto)} aria-label={`Remover ${produto.nome}`} title="Remover" className="grid h-9 w-9 place-items-center rounded-xl text-stone-400 hover:bg-rose-50 hover:text-rose-600">
+                  <button onClick={() => aoExcluir(produto)} aria-label={`Remover ${produto.nome}`} title="Remover" className="grid h-9 w-9 place-items-center rounded-xl text-stone-400 hover:bg-rose-50 hover:text-rose-600 transition-colors">
                     <Trash2 size={16} />
                   </button>
                 </span>

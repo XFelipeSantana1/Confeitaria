@@ -60,7 +60,7 @@ export function CarrinhoDrawer({
           <h3 className="flex items-center gap-2 font-display text-2xl font-bold">
             <ShoppingBasket size={22} /> Sua sacola
           </h3>
-          <p className="mt-1 text-[13px] text-stone-500">
+          <p className="mt-1 text-[13px] text-textoSuave">
             {itens.length === 0
               ? "Nada aqui ainda — o cardápio te espera."
               : `${itens.reduce((soma, item) => soma + item.quantidade, 0)} item(ns) · ${formatarMoeda(total)}`}
@@ -69,7 +69,7 @@ export function CarrinhoDrawer({
         <button
           onClick={aoFechar}
           aria-label="Fechar sacola"
-          className="grid h-10 w-10 place-items-center rounded-xl border border-borda bg-white hover:-translate-y-0.5"
+          className="grid h-10 w-10 place-items-center rounded-xl border border-borda bg-white hover:-translate-y-0.5 transition-colors"
         >
           <X size={19} />
         </button>
@@ -82,7 +82,7 @@ export function CarrinhoDrawer({
               🧺
             </p>
             <b className="mt-3 block font-display text-xl">Sacola vazia</b>
-            <p className="mt-1 text-sm text-stone-500">
+            <p className="mt-1 text-sm text-textoSuave">
               Que tal começar pelo destaque da casa? É só rolar um pouco. 👇
             </p>
             <div className="mt-5">
@@ -106,7 +106,7 @@ export function CarrinhoDrawer({
       {/* Rodapé fixo fora da área de rolagem: o finalizar fica sempre
           visível com itens, sem precisar rolar o drawer. */}
       <div className="flex flex-col gap-2.5 border-t border-borda bg-white p-5">
-        <label className="flex flex-col gap-1 text-xs font-bold text-stone-600">
+        <label className="flex flex-col gap-1 text-xs font-bold text-textoSuave">
           Seu nome
           <input
             value={nomeCliente}
@@ -116,7 +116,7 @@ export function CarrinhoDrawer({
             className="rounded-xl border border-borda bg-creme px-3.5 py-2.5 font-corpo text-sm font-normal"
           />
         </label>
-        <label className="flex flex-col gap-1 text-xs font-bold text-stone-600">
+        <label className="flex flex-col gap-1 text-xs font-bold text-textoSuave">
           Observações
           <input
             value={observacao}
@@ -132,7 +132,7 @@ export function CarrinhoDrawer({
         <Botao variante="whats" onClick={aoFinalizar} className="w-full py-4 text-base">
           <MessageCircle size={20} /> Finalizar no WhatsApp
         </Botao>
-        <p className="flex items-center justify-center gap-1.5 text-xs text-stone-400">
+        <p className="flex items-center justify-center gap-1.5 text-xs text-textoSuave/70">
           <Lock size={13} /> Sem pagamento online — você confirma tudo no chat.
         </p>
       </div>

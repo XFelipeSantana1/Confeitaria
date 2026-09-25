@@ -1,21 +1,18 @@
-import { useState } from "react";
 import { Plus, RotateCcw } from "lucide-react";
 import { useAutenticacao } from "../hooks/useAutenticacao";
 import { useProdutos } from "../hooks/useProdutos";
-import type { ProdutoAdmin } from "../types";
-import { ErroApi } from "../lib/api";
+import { useJanelaProduto } from "../hooks/useJanelaProduto";
 import { Cartao } from "../components/ui/Cartao";
 import { Botao } from "../components/ui/Botao";
 import { CabecalhoSecao } from "../components/CabecalhoSecao";
 import { TabelaProdutos } from "../components/TabelaProdutos";
-import { ModaisProduto, type JanelaProduto } from "../components/ModaisProduto";
+import { ModaisProduto } from "../components/ModaisProduto";
 import type { DadosProduto } from "../components/ModalProduto";
 
 // Produtos (/painel/produtos): tabela com liga/desliga da vitrine, modal com
 // ficha técnica dinâmica e excluir com confirmação personalizada.
-// Editar carrega a ficha atual (GET /admin/:id) antes de abrir o modal.
-type Janela = JanelaProduto;
-
+// A janela (abrir/editar/excluir + tratamento de erro) mora no hook;
+// aqui fica só a composição da tela.
 export function Produtos(): JSX.Element {
   const { sessao, sair } = useAutenticacao();
   const {
@@ -33,71 +30,15 @@ export function Produtos(): JSX.Element {
     carregarFicha,
   } = useProdutos(sessao?.token ?? null);
 
-  const [janela, definirJanela] = useState<Janela>({ tipo: "fechada" });
-  const [salvando, definirSalvando] = useState(false);
-  const [erroModal, definirErroModal] = useState<string | null>(null);
-  const [aviso, definirAviso] = useState<string | null>(null);
+  const janela = useJanelaProduto({
+    criar,
+    atualizar,
+    salvarFicha,
+    remover,
+    carregarFicha,
+  });
 
   if (precisaLogin) sair();
-
-  // Molde: executa, fecha em sucesso ou mostra o erro do backend no modal.
-  async function executar(acao: () => Promise<unknown>): Promise<void> {
-    definirSalvando(true);
-    definirErroModal(null);
-    try {
-      await acao();
-      definirJanela({ tipo: "fechada" });
-    } catch (falha) {
-      definirErroModal(falha instanceof ErroApi ? falha.message : "A ação falhou. Tente de novo.");
-    } finally {
-      definirSalvando(false);
-    }
-  }
-
-  async function salvar(dados: DadosProduto): Promise<void> {
-    if (janela.tipo !== "produto") return;
-    const alvo = janela.produto;
-    if (!alvo) {
-      await executar(() =>
-        criar({
-          nome: dados.nome,
-          descricao: dados.descricao || undefined,
-          preco: dados.preco,
-          categoria_id: dados.categoria_id,
-          imagem_url: dados.imagem_url || undefined,
-          ficha_tecnica: dados.ficha,
-        }),
-      );
-      return;
-    }
-    // Edição em duas chamadas (dados + ficha), como o backend separa.
-    await executar(async () => {
-      await atualizar(alvo.id, {
-        nome: dados.nome,
-        descricao: dados.descricao || null,
-        preco: dados.preco,
-        categoria_id: dados.categoria_id,
-        imagem_url: dados.imagem_url || null,
-      });
-      await salvarFicha(alvo.id, dados.ficha);
-    });
-  }
-
-  async function abrirEdicao(produto: ProdutoAdmin): Promise<void> {
-    try {
-      const { ficha } = await carregarFicha(produto.id);
-      definirErroModal(null);
-      definirAviso(null);
-      definirJanela({ tipo: "produto", produto, ficha });
-    } catch (falha) {
-      definirAviso(falha instanceof Error ? falha.message : "Não foi possível abrir a edição.");
-    }
-  }
-
-  async function excluir(): Promise<void> {
-    if (janela.tipo !== "excluir") return;
-    await executar(() => remover(janela.produto.id));
-  }
 
   return (
     <div className="flex flex-col gap-5">
@@ -105,15 +46,18 @@ export function Produtos(): JSX.Element {
         rotulo="cardápio"
         titulo="Produtos"
         acao={
-          <Botao onClick={() => { definirErroModal(null); definirJanela({ tipo: "produto", produto: null, ficha: [] }); }}>
+          <Botao onClick={janela.abrirNovo}>
             <Plus size={17} /> Novo produto
           </Botao>
         }
       />
 
-      {aviso ? (
-        <p role="alert" className="rounded-2xl bg-rose-50 px-4 py-2.5 text-sm font-semibold text-rose-700">{aviso}</p>
+      {janela.aviso ? (
+        <p role="alert" className="rounded-2xl bg-rose-50 px-4 py-2.5 text-sm font-semibold text-rose-700">
+          {janela.aviso}
+        </p>
       ) : null}
+
       {carregando ? (
         <div className="h-64 animate-pulse rounded-3xl border border-borda bg-white" aria-busy="true" aria-label="Carregando produtos" />
       ) : erro ? (
@@ -135,21 +79,21 @@ export function Produtos(): JSX.Element {
       ) : (
         <TabelaProdutos
           produtos={produtos}
-          aoEditar={abrirEdicao}
-          aoAlternarAtivo={(produto) => atualizar(produto.id, { ativo: !produto.ativo })}
-          aoExcluir={(produto) => { definirErroModal(null); definirJanela({ tipo: "excluir", produto }); }}
+          aoEditar={janela.abrirEdicao}
+          aoAlternarAtivo={(produto) => void atualizar(produto.id, { ativo: !produto.ativo })}
+          aoExcluir={janela.pedirExclusao}
         />
       )}
 
       <ModaisProduto
-        janela={janela}
+        janela={janela.janela}
         categorias={categorias}
         insumos={insumos}
-        salvando={salvando}
-        erroModal={erroModal}
-        aoFechar={() => definirJanela({ tipo: "fechada" })}
-        aoSalvar={salvar}
-        aoConfirmarExcluir={excluir}
+        salvando={janela.abrindo}
+        erroModal={janela.erro}
+        aoFechar={janela.fechar}
+        aoSalvar={(dados: DadosProduto) => void janela.salvarProduto(dados)}
+        aoConfirmarExcluir={() => void janela.confirmarExclusao()}
       />
     </div>
   );

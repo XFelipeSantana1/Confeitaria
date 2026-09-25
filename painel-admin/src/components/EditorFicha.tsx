@@ -55,7 +55,7 @@ export function EditorFicha({ linhas, insumos, aoMudar }: PropriedadesEditorFich
               type="button"
               onClick={() => aoMudar(linhas.filter((l) => l.chave !== linha.chave))}
               aria-label="Remover linha da receita"
-              className="grid h-9 w-9 flex-none place-items-center rounded-xl text-stone-400 hover:bg-rose-50 hover:text-rose-600"
+              className="grid h-9 w-9 flex-none place-items-center rounded-xl text-stone-400 hover:bg-rose-50 hover:text-rose-600 transition-colors"
             >
               <Trash2 size={16} />
             </button>
@@ -65,7 +65,7 @@ export function EditorFicha({ linhas, insumos, aoMudar }: PropriedadesEditorFich
       <button
         type="button"
         onClick={() => aoMudar([...linhas, { chave: Date.now(), insumo_id: "", quantidade: "" }])}
-        className="flex items-center gap-1.5 self-start rounded-full border border-dashed border-caramelo px-4 py-1.5 text-xs font-bold text-carameloForte hover:bg-caramelo/10"
+        className="flex items-center gap-1.5 self-start rounded-full border border-dashed border-caramelo px-4 py-1.5 text-xs font-bold text-carameloForte hover:bg-caramelo/10 transition-colors"
       >
         <Plus size={14} /> Adicionar ingrediente
       </button>

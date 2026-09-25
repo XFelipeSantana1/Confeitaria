@@ -69,7 +69,7 @@ export function CardProduto({
 
       <div className="flex flex-1 flex-col gap-2 p-4">
         <h3 className="font-display text-xl font-semibold">{produto.nome}</h3>
-        <p className="flex-1 font-corpo text-[13px] leading-relaxed text-stone-600">
+        <p className="flex-1 font-corpo text-[13px] leading-relaxed text-textoSuave">
           {produto.descricao}
         </p>
         <div className="mt-1 flex flex-col gap-2">
@@ -77,7 +77,7 @@ export function CardProduto({
             {formatarMoeda(produto.preco)}
           </span>
           {!disponivel ? (
-            <span className="font-corpo text-xs font-semibold text-stone-400">
+            <span className="font-corpo text-xs font-semibold text-textoSuave/70">
               Sem estoque no momento
             </span>
           ) : quantidadeNaSacola === 0 ? (

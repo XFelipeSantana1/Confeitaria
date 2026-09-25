@@ -4,17 +4,17 @@ import { Botao } from "./ui/Botao";
 // Abertura em dois tempos: foto limpa em tela cheia (sem véu nem moldura)
 // e, abaixo, o conteúdo sobre o cacau da página. A foto vende; o texto
 // respira no escuro sem precisar de overlay.
-interface PropriedadesHero {
+interface PropriedadesAbertura {
   totalProdutos: number;
   totalCategorias: number;
   aoComoFunciona: () => void;
 }
 
-export function Hero({
+export function Abertura({
   totalProdutos,
   totalCategorias,
   aoComoFunciona,
-}: PropriedadesHero): JSX.Element {
+}: PropriedadesAbertura): JSX.Element {
   return (
     <section>
       <div className="h-[44svh] min-h-[300px] w-full overflow-hidden">
