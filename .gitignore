@@ -1,0 +1,30 @@
+# Dependências e builds
+node_modules/
+dist/
+build/
+
+# Segredos e configuração local (NUNCA versionar)
+.env
+.env.local
+.env.*.local
+backend/.env
+painel-admin/.env
+vitrine-cliente/.env
+
+# Tokens/sessões (o backend gerava token.txt com JWT real em testes)
+token.txt
+**/token.txt
+
+# Logs e temporários
+*.log
+npm-debug.log*
+.DS_Store
+Thumbs.db
+
+# Editores
+.vscode/
+.idea/
+
+# Bastidor do desenvolvimento (não faz parte do projeto publicado)
+CONTEXTO_PROJETO.md
+prompt-opencode.md
