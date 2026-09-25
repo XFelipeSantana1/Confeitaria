@@ -1,0 +1,6 @@
+node_modules/
+dist/
+.env
+# Nunca commitar tokens/sessões reais (ex-JWT de teste em src/token.txt)
+token.txt
+src/token.txt
