@@ -83,7 +83,7 @@ export function Cabecalho({
         <button
           onClick={aoAbrirSacola}
           aria-label={`Abrir sacola com ${unidadesSacola} itens`}
-          className="flex items-center gap-2 rounded-full bg-caramelo px-5 py-2.5 font-corpo text-sm font-bold text-white shadow-Cartao transition-transform hover:bg-carameloForte active:scale-95"
+          className="flex items-center gap-2 rounded-full bg-carameloForte px-5 py-2.5 font-corpo text-sm font-bold text-white shadow-Cartao transition-transform hover:bg-carameloEscuro active:scale-95"
         >
           <ShoppingBasket size={18} />
           <span className="hidden sm:inline">Sacola</span>

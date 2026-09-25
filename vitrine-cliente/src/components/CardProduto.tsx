@@ -84,7 +84,7 @@ export function CardProduto({
             <button
               onClick={() => aoAdicionar(produto.id)}
               aria-label={`Adicionar ${produto.nome} à sacola`}
-              className="flex items-center justify-center gap-1.5 self-center rounded-full bg-caramelo px-7 py-2.5 font-corpo text-sm font-bold text-white transition-all hover:bg-carameloForte active:scale-95"
+              className="flex items-center justify-center gap-1.5 self-center rounded-full bg-carameloForte px-7 py-2.5 font-corpo text-sm font-bold text-white transition-all hover:bg-carameloEscuro active:scale-95"
             >
               <Plus size={16} /> Adicionar produto <ArrowRight size={15} />
             </button>

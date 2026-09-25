@@ -33,7 +33,7 @@ export function BarraLateral(): JSX.Element {
             to={item.rota}
             end
             className={({ isActive }) =>
-              `${base} ${isActive ? "bg-caramelo text-white" : "text-creme/70 hover:bg-white/10 hover:text-creme"}`
+              `${base} ${isActive ? "bg-carameloForte text-white" : "text-creme/70 hover:bg-white/10 hover:text-creme"}`
             }
           >
             <Icone size={18} /> {item.rotulo}
@@ -52,7 +52,7 @@ export function BarraLateral(): JSX.Element {
         );
       })}
       <div className="mt-auto flex items-center gap-2 rounded-xl bg-white/5 p-3">
-        <span className="grid h-9 w-9 flex-none place-items-center rounded-full bg-caramelo font-display font-bold text-white">
+        <span className="grid h-9 w-9 flex-none place-items-center rounded-full bg-carameloForte font-display font-bold text-white">
           {sessao?.usuario.nome.charAt(0).toUpperCase()}
         </span>
         <span className="min-w-0 flex-1">

@@ -14,7 +14,7 @@ export function CabecalhoCardapio({
   return (
     <div className="mb-2 flex flex-wrap items-end justify-between gap-3">
       <div>
-        <p className="inline-flex items-center gap-2 rounded-full bg-caramelo px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-white">
+        <p className="inline-flex items-center gap-2 rounded-full bg-carameloForte px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-white">
           📖 nosso cardápio
         </p>
         <h2 className="mt-2 font-display text-3xl font-bold text-tinta md:text-4xl">

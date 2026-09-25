@@ -4,7 +4,7 @@ import type { ButtonHTMLAttributes } from "react";
 type VarianteBotao = "escura" | "clara" | "perigo";
 
 const ESTILOS: Record<VarianteBotao, string> = {
-  escura: "bg-caramelo text-white hover:bg-carameloForte hover:-translate-y-0.5 shadow-Cartao",
+  escura: "bg-carameloForte text-white hover:bg-carameloEscuro hover:-translate-y-0.5 shadow-Cartao",
   clara: "bg-white text-tinta border border-borda hover:-translate-y-0.5",
   perigo: "bg-rose-600 text-white hover:brightness-110",
 };

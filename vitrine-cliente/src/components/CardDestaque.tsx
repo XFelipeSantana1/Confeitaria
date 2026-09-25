@@ -74,7 +74,7 @@ export function CardDestaque({
             <button
               onClick={() => aoAdicionar(produto.id)}
               aria-label={`Adicionar ${produto.nome} à sacola`}
-              className="flex items-center gap-1.5 rounded-full bg-caramelo px-7 py-3 font-corpo text-sm font-bold text-white shadow-Cartao transition-all hover:bg-carameloForte active:scale-95"
+              className="flex items-center gap-1.5 rounded-full bg-carameloForte px-7 py-3 font-corpo text-sm font-bold text-white shadow-Cartao transition-all hover:bg-carameloEscuro active:scale-95"
             >
               <Plus size={16} /> Quero esse
             </button>

@@ -8,7 +8,7 @@ export function ListaMaisVendidos({ itens }: { itens: ProdutoVendido[] }): JSX.E
   return (
     <Cartao className="flex-1">
       <h2 className="flex items-center gap-2 font-display text-xl font-bold text-tinta">
-        <Trophy size={20} className="text-dourado" /> Mais vendidos
+        <Trophy size={20} className="text-carameloForte" /> Mais vendidos
       </h2>
       {itens.length === 0 ? (
         <p className="py-6 text-center text-sm text-textoSuave">

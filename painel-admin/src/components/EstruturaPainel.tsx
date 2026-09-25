@@ -11,7 +11,7 @@ export function EstruturaPainel(): JSX.Element {
       <BarraLateral />
       <div className="flex min-w-0 flex-1 flex-col">
         <header className="flex items-center gap-2 border-b border-borda bg-creme/85 px-5 py-3 backdrop-blur-md md:hidden">
-          <span className="grid h-9 w-9 place-items-center rounded-xl bg-tinta text-dourado">
+          <span className="grid h-9 w-9 place-items-center rounded-xl bg-tinta text-amber-200">
             <CakeSlice size={18} />
           </span>
           <b className="font-display text-lg text-tinta">ConfeitoGest</b>

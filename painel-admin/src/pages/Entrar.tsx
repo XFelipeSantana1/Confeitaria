@@ -43,7 +43,7 @@ export function Entrar(): JSX.Element {
       {/* Lado marca: vende o sonho (só desktop — no mobile é só o form). */}
       <div className="relative hidden flex-col justify-between overflow-hidden bg-tinta p-10 text-creme md:flex">
         <p className="flex items-center gap-2 font-display text-2xl font-extrabold">
-          <span className="grid h-11 w-11 place-items-center rounded-2xl bg-caramelo text-white">
+          <span className="grid h-11 w-11 place-items-center rounded-2xl bg-carameloForte text-white">
             <CakeSlice size={22} />
           </span>
           Confeito<em className="text-dourado">Gest</em>

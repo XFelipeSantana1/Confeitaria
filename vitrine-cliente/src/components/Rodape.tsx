@@ -20,7 +20,7 @@ export function Rodape({ secoes, aoAbrirConfiguracoes }: PropriedadesRodape): JS
       <div className="mx-auto grid max-w-6xl gap-8 px-5 py-12 md:grid-cols-3">
         <div>
           <p className="flex items-center gap-2 font-display text-2xl font-extrabold">
-            <span className="grid h-10 w-10 place-items-center rounded-2xl bg-caramelo text-white">
+            <span className="grid h-10 w-10 place-items-center rounded-2xl bg-carameloForte text-white">
               <CakeSlice size={20} />
             </span>
             Confeito<em className="text-dourado">Gest</em>
