@@ -1,0 +1,66 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Base da vitrine: creme suave com brilhos quentes de caramelo. */
+body {
+  margin: 0;
+  font-family: "DM Sans", system-ui, sans-serif;
+  background:
+    radial-gradient(900px 320px at 85% -60px, #f6e3ce 0%, transparent 60%),
+    radial-gradient(700px 300px at -10% 200px, #f2d5c2 0%, transparent 55%),
+    #fdf8f3;
+  color: #2b1e17;
+}
+
+/* Animações usadas via classes arbitrary animate-[...] nos componentes. */
+@keyframes flutuar {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes subir {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+}
+
+@keyframes deslizar {
+  from {
+    transform: translateX(40px);
+    opacity: 0;
+  }
+}
+
+/* Letreiro corrido: o trilho tem 2 cópias e anda metade (loop perfeito). */
+@keyframes letreiro {
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+/* Pulo do contador da sacola: confirma o "adicionar" no topo sem toast extra. */
+@keyframes pulo {
+  0% {
+    transform: scale(1);
+  }
+  35% {
+    transform: scale(1.45);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* Fade do overlay do drawer: entrar junto com o slide, não seco. */
+@keyframes aparecer {
+  from {
+    opacity: 0;
+  }
+}
