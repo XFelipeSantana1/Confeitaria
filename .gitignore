@@ -38,3 +38,8 @@ PROMPT-IMAGENS.md
 # cumpriu. A marca entregue está versionada em `marca/` e instalada em
 # `painel-admin/public/` e `vitrine-cliente/public/`.
 IDENTIDADE.md
+
+# Backend reescrito do zero como estudo. Fica NO MESMO projeto (e é onde a
+# memória desta conversa vive), mas não vai para o Git: é exercício, com o
+# código meio torto de propósito, e não é o backend que roda.
+estudo-backend/
