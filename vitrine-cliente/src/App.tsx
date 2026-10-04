@@ -1,8 +1,8 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useCardapio } from "./hooks/useCardapio";
 import { useCarrinho } from "./hooks/useCarrinho";
 import { useAviso } from "./hooks/useAviso";
-import { montarLinkWhats, montarMensagemPedido } from "./lib/mensagemWhats";
+import { usePedidoWhats } from "./hooks/usePedidoWhats";
 import { determinarEstadoApi } from "./lib/estadoApi";
 import { Cabecalho } from "./components/Cabecalho";
 import { Abertura } from "./components/Abertura";
@@ -10,23 +10,13 @@ import { FaixaRolante } from "./components/FaixaRolante";
 import { SecaoCardapio } from "./components/SecaoCardapio";
 import { SecaoInformacoes } from "./components/SecaoInformacoes";
 import { Rodape } from "./components/Rodape";
-import { CarrinhoDrawer } from "./components/CarrinhoDrawer";
-import { AvisoFlutuante } from "./components/AvisoFlutuante";
-import { ModalConfiguracoes } from "./components/ModalConfiguracoes";
-import { ModalAjuda } from "./components/ModalAjuda";
+import { Camadas } from "./components/Camadas";
 
 // Orquestra a vitrine: busca dados, guarda filtros e abre/fecha painéis.
 // Regra de negócio mora nos hooks/lib — aqui só composição e estado de tela.
 export default function App(): JSX.Element {
-  const {
-    produtos,
-    categorias,
-    carregando,
-    erro,
-    modoDemonstracao,
-    buscarNovamente,
-    usarDemonstracao,
-  } = useCardapio();
+  const cardapio = useCardapio();
+  const { produtos, categorias, buscarNovamente } = cardapio;
   const { itens, adicionarVarios, remover, alterarQuantidade, total, unidades, quantidades } =
     useCarrinho(produtos);
   const { aviso, mostrarAviso } = useAviso();
@@ -38,6 +28,15 @@ export default function App(): JSX.Element {
   const [nomeCliente, definirNome] = useState("");
   const [observacao, definirObservacao] = useState("");
 
+  // Depois dos estados de formulário de propósito: o hook só precisa dos
+  // valores deles, e antes da declaração o `const` nem existiria.
+  const { finalizar: finalizarNoWhats } = usePedidoWhats(
+    itens,
+    nomeCliente,
+    observacao,
+    mostrarAviso,
+  );
+
   // Só a busca filtra aqui (case-insensitive); agrupar por categoria e
   // navegar entre seções é papel da SecaoCardapio (scroll-spy).
   const buscados = useMemo(() => {
@@ -48,7 +47,25 @@ export default function App(): JSX.Element {
     );
   }, [produtos, termoBusca]);
 
-  const estadoApi = determinarEstadoApi(carregando, erro, modoDemonstracao);
+  // Falha na recarga silenciosa vira balão, não tela de erro: o cardápio
+  // continua na tela (dado velho é melhor que tela vazia), mas o cliente
+  // precisa saber que o que vê não é o mais novo.
+  useEffect(() => {
+    if (cardapio.falhaNaAtualizacao !== null) {
+      // A mensagem real entra no balão: ela diz se a API caiu, se o endereço
+      // está errado ou se foi a rede. "Toque em atualizar" repetia a mesma
+      // frase para três causas diferentes e não ajudava a diagnosticar nada.
+      mostrarAviso(
+        `Mostrando o cardápio salvo — ${cardapio.falhaNaAtualizacao} Toque em atualizar.`,
+      );
+    }
+  }, [cardapio.falhaNaAtualizacao, mostrarAviso]);
+
+  const estadoApi = determinarEstadoApi(
+    cardapio.carregando,
+    cardapio.erro,
+    cardapio.modoDemonstracao,
+  );
 
   // Fecha a sacola e leva de volta ao cardápio (usado pelo vazio que convida).
   function verCardapio(): void {
@@ -57,24 +74,12 @@ export default function App(): JSX.Element {
       .getElementById("cardapio")
       ?.scrollIntoView({ behavior: "smooth", block: "start" });
   }
-  // MVP: sem checkout via API — só monta o texto e abre o wa.me (decisão de
-  // escopo: o pedido entra pelo bot/painel depois, não pela vitrine).
-  function finalizarNoWhats(): void {
-    if (itens.length === 0) {
-      mostrarAviso("Sua sacola está vazia 🧺");
-      return;
-    }
-    const numero =
-      localStorage.getItem("cg_whats") ||
-      (import.meta.env.VITE_WHATSAPP_LOJA as string | undefined) ||
-      "";
-    if (numero.replace(/\D/g, "").length < 10) {
-      mostrarAviso("Configure o WhatsApp da loja na engrenagem ⚙️");
-      return;
-    }
-    const mensagem = montarMensagemPedido(itens, nomeCliente, observacao);
-    window.open(montarLinkWhats(numero, mensagem), "_blank");
-    mostrarAviso("Abrindo o WhatsApp… 💬");
+
+  // Mudou o endereço da API: a recarga aqui é a "de verdade", com esqueleto,
+  // porque o cardápio atual pode ser de outro servidor.
+  function salvarConfiguracoes(): void {
+    definirConfigAberto(false);
+    buscarNovamente();
   }
 
   return (
@@ -91,6 +96,11 @@ export default function App(): JSX.Element {
       <Abertura
         totalProdutos={produtos.length}
         totalCategorias={categorias.length}
+        menorPreco={
+          produtos.length > 0
+            ? Math.min(...produtos.map((produto) => produto.preco))
+            : null
+        }
         aoComoFunciona={() => definirAjudaAberta(true)}
       />
 
@@ -100,53 +110,40 @@ export default function App(): JSX.Element {
         produtos={buscados}
         categorias={categorias}
         buscaAtiva={termoBusca.trim() !== ""}
-        carregando={carregando}
-        erro={erro}
-        modoDemonstracao={modoDemonstracao}
+        estado={cardapio}
         quantidades={quantidades}
         aoAdicionarVarios={adicionarVarios}
         aoMostrarAviso={mostrarAviso}
         aoAlterarQuantidade={alterarQuantidade}
-        aoTentarNovamente={buscarNovamente}
-        aoUsarDemonstracao={usarDemonstracao}
         aoLimparBusca={() => definirBusca("")}
       />
 
       <SecaoInformacoes />
-      <Rodape secoes={categorias} aoAbrirConfiguracoes={() => definirConfigAberto(true)} />
+      <Rodape
+        secoes={categorias}
+        aoAbrirConfiguracoes={() => definirConfigAberto(true)}
+      />
 
-      {sacolaAberta && (
-        <div
-          className="fixed inset-0 z-[60] animate-[aparecer_0.25s_ease] bg-tinta/45"
-          onClick={() => definirSacolaAberta(false)}
-          aria-hidden="true"
-        />
-      )}
-      <CarrinhoDrawer
-        aberto={sacolaAberta}
+      <Camadas
+        sacolaAberta={sacolaAberta}
         itens={itens}
         total={total}
         nomeCliente={nomeCliente}
         observacao={observacao}
+        configAberto={configAberto}
+        ajudaAberta={ajudaAberta}
+        aviso={aviso}
+        aoFecharSacola={() => definirSacolaAberta(false)}
         aoMudarNome={definirNome}
         aoMudarObservacao={definirObservacao}
         aoAlterarQuantidade={alterarQuantidade}
         aoRemover={remover}
-        aoFechar={() => definirSacolaAberta(false)}
         aoFinalizar={finalizarNoWhats}
         aoVerCardapio={verCardapio}
+        aoFecharConfiguracoes={() => definirConfigAberto(false)}
+        aoSalvarConfiguracoes={salvarConfiguracoes}
+        aoFecharAjuda={() => definirAjudaAberta(false)}
       />
-      <ModalConfiguracoes
-        aberto={configAberto}
-        aoFechar={() => definirConfigAberto(false)}
-        aoSalvar={() => {
-          definirConfigAberto(false);
-          buscarNovamente();
-        }}
-      />
-      <ModalAjuda aberto={ajudaAberta} aoFechar={() => definirAjudaAberta(false)} />
-
-      {aviso !== null && <AvisoFlutuante texto={aviso} />}
     </div>
   );
 }

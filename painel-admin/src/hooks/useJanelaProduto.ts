@@ -82,9 +82,16 @@ export function useJanelaProduto(acoes: AcoesProduto): {
     },
     pedirExclusao: (produto) => {
       definirErro(null);
+      // Limpa o aviso anterior: ele fica no topo da tela e não tem botão de
+      // fechar, então "não consegui abrir a edição" continuava ali depois que
+      // a pessoa já tinha aberto a janela de exclusão.
+      definirAviso(null);
       definirJanela({ tipo: "excluir", produto });
     },
-    fechar: () => definirJanela({ tipo: "fechada" }),
+    fechar: () => {
+      definirJanela({ tipo: "fechada" });
+      definirAviso(null);
+    },
     salvarProduto: async (dados) => {
       if (janela.tipo !== "produto") return;
       const alvo = janela.produto;

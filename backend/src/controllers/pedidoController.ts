@@ -1,20 +1,62 @@
 import pool from "../config/db.js";
 import { Request, Response } from "express";
+import type { ResultSetHeader, RowDataPacket } from "mysql2";
+import { ehFinal, podeMudar, rotulo, STATUS_VALIDOS } from "../lib/cicloPedido.js";
+import { registrar } from "../services/registroService.js";
+import type { RequisicaoAutenticada } from "../middleware/auth.js";
 
 class ErroNegocio extends Error {}
 
+/** Produto lendo preço e nome na mesma consulta do pedido. */
+interface LinhaProduto extends RowDataPacket {
+  id: number;
+  nome: string;
+  preco: number;
+}
+
+interface LinhaReceita extends RowDataPacket {
+  insumo_id: number;
+  quantidade_necessaria: number;
+}
+
+interface LinhaEstoque extends RowDataPacket {
+  quantidade_atual: number;
+}
+
+interface LinhaStatus extends RowDataPacket {
+  status: string;
+  status_pagamento: string;
+}
+
+/** Soma por insumo no estorno: volta string (SUM de DECIMAL), Number() no uso. */
+interface LinhaUso extends RowDataPacket {
+  insumo_id: number;
+  quantidade: number | string;
+}
+
+/** Item já validado, na forma em que entra no INSERT. */
+interface ItemPronto {
+  produto_id: number;
+  quantidade: number;
+  preco_unitario: number;
+  subtotal: number;
+}
+
 // GET /api/pedidos?status=pendente -> painel
 export async function listar(req: Request, res: Response) {
-  const { status } = req.query;
+  // ?status=x&status=y chega como array. Fica só o primeiro valor, e só se for
+  // texto: passar o array inteiro ao driver gerava SQL que ninguém revisou.
+  const bruto = req.query.status;
+  const status = Array.isArray(bruto) ? bruto[0] : bruto;
 
   let sql = `
     SELECT pe.*, c.nome AS cliente_nome, c.whatsapp
     FROM pedidos pe
     JOIN clientes c ON c.id = pe.cliente_id
   `;
-  const params: any[] = [];
+  const params: (string | number)[] = [];
 
-  if (status) {
+  if (typeof status === "string" && status !== "") {
     sql += " WHERE pe.status = ?";
     params.push(status);
   }
@@ -27,7 +69,7 @@ export async function listar(req: Request, res: Response) {
 export async function buscarPorId(req: Request, res: Response) {
   const id = Number(req.params.id);
 
-  const [pedidoRows]: any = await pool.query(
+  const [pedidoRows] = await pool.query<RowDataPacket[]>(
     `SELECT pe.*, c.nome AS cliente_nome, c.whatsapp
      FROM pedidos pe JOIN clientes c ON c.id = pe.cliente_id
      WHERE pe.id = ?`,
@@ -82,31 +124,27 @@ export async function criarViaBot(req: Request, res: Response) {
   try {
     await conexao.beginTransaction();
 
-    // 1. Garante que o cliente existe
-    const [clienteRows]: any = await conexao.query(
-      "SELECT id FROM clientes WHERE whatsapp = ?",
-      [whatsapp]
+    // 1. Garante que o cliente existe.
+    // INSERT ... ON DUPLICATE KEY UPDATE + LAST_INSERT_ID: dois pedidos do
+    // mesmo whatsapp novo, ao mesmo tempo, não podem colidir no
+    // índice único (viraria 500). O SELECT seguido de INSERT tinha essa
+    // corrida; aqui o próprio banco resolve e devolve o id.
+    const [resultado] = await conexao.query<ResultSetHeader>(
+      `INSERT INTO clientes (nome, whatsapp) VALUES (?, ?)
+       ON DUPLICATE KEY UPDATE id = LAST_INSERT_ID(id)`,
+      [nome_cliente || null, whatsapp]
     );
-    let clienteId: number;
-    if (clienteRows[0]) {
-      clienteId = clienteRows[0].id;
-    } else {
-      const [result]: any = await conexao.query(
-        "INSERT INTO clientes (nome, whatsapp) VALUES (?, ?)",
-        [nome_cliente || null, whatsapp]
-      );
-      clienteId = result.insertId;
-    }
+    const clienteId = resultado.insertId;
 
     // 2. Para cada item: busca preço + ficha técnica, e TRAVA a linha
     //    do insumo (FOR UPDATE) para evitar corrida entre pedidos
     //    simultâneos disputando o mesmo insumo escasso.
     let valorTotal = 0;
-    const itensParaInserir: any[] = [];
+    const itensParaInserir: ItemPronto[] = [];
     const baixasDeEstoque: { insumo_id: number; quantidade: number }[] = [];
 
     for (const item of itensNormalizados) {
-      const [produtoRows]: any = await conexao.query(
+      const [produtoRows] = await conexao.query<LinhaProduto[]>(
         "SELECT id, nome, preco FROM produtos WHERE id = ? AND ativo = TRUE",
         [item.produto_id]
       );
@@ -124,7 +162,7 @@ export async function criarViaBot(req: Request, res: Response) {
         subtotal,
       });
 
-      const [receita]: any = await conexao.query(
+      const [receita] = await conexao.query<LinhaReceita[]>(
         "SELECT insumo_id, quantidade_necessaria FROM produto_insumo WHERE produto_id = ?",
         [produto.id]
       );
@@ -132,7 +170,7 @@ export async function criarViaBot(req: Request, res: Response) {
       for (const ingrediente of receita) {
         const necessario = ingrediente.quantidade_necessaria * item.quantidade;
 
-        const [insumoRows]: any = await conexao.query(
+        const [insumoRows] = await conexao.query<LinhaEstoque[]>(
           "SELECT quantidade_atual FROM insumos WHERE id = ? FOR UPDATE",
           [ingrediente.insumo_id]
         );
@@ -153,7 +191,7 @@ export async function criarViaBot(req: Request, res: Response) {
       await conexao.rollback();
       return res.status(400).json({ erro: "Forma de pagamento inválida. Use: pix, cartao, dinheiro ou outro." });
     }
-    const [pedidoResult]: any = await conexao.query(
+    const [pedidoResult] = await conexao.query<ResultSetHeader>(
       `INSERT INTO pedidos (cliente_id, status, forma_pagamento, valor_total, origem)
        VALUES (?, 'pendente', ?, ?, 'whatsapp')`,
       [clienteId, forma_pagamento || null, valorTotal]
@@ -199,12 +237,11 @@ export async function criarViaBot(req: Request, res: Response) {
 // Regras: cancelado é estado final (não sai de lá) e cancelar ESTORNA o
 // estoque debitado na venda (baixa reversa auditada). Sem isso, cancelar
 // sumia com o pedido e o insumo ficava debitado para sempre.
-export async function atualizarStatus(req: Request, res: Response) {
+export async function atualizarStatus(req: RequisicaoAutenticada, res: Response) {
   const id = Number(req.params.id);
   const { status } = req.body;
 
-  const validos = ["pendente", "em_preparo", "pronto", "entregue", "cancelado"];
-  if (!validos.includes(status)) {
+  if (!STATUS_VALIDOS.includes(status)) {
     return res.status(400).json({ erro: "Status inválido." });
   }
 
@@ -212,32 +249,49 @@ export async function atualizarStatus(req: Request, res: Response) {
   try {
     await conexao.beginTransaction();
 
-    const [pedidoRows]: any = await conexao.query(
-      "SELECT status FROM pedidos WHERE id = ? FOR UPDATE",
+    const [pedidoRows] = await conexao.query<LinhaStatus[]>(
+      "SELECT status, status_pagamento FROM pedidos WHERE id = ? FOR UPDATE",
       [id]
     );
     if (!pedidoRows[0]) {
       await conexao.rollback();
       return res.status(404).json({ erro: "Pedido não encontrado." });
     }
-    const statusAnterior = pedidoRows[0].status as string;
+    const statusAnterior = pedidoRows[0].status;
 
-    if (statusAnterior === "cancelado" && status !== "cancelado") {
+    if (statusAnterior === status) {
       await conexao.rollback();
-      return res.status(409).json({ erro: "Pedido cancelado não pode mudar de status." });
+      return res.json({ id, status });
     }
+
+    // A regra mora na API (lib/cicloPedido): a tela esconder o botão não
+    // impede a chamada. Sem esta checagem dava para devolver ao estoque uma
+    // encomenda já entregue, ou andar para trás no fluxo.
+    if (!podeMudar(statusAnterior, status)) {
+      await conexao.rollback();
+      const motivo = ehFinal(statusAnterior)
+        ? `Pedido ${rotulo(statusAnterior)} é o fim do fluxo e não muda mais.`
+        : `Não dá para ir de "${rotulo(statusAnterior)}" para "${rotulo(status)}".`;
+      return res.status(409).json({ erro: motivo });
+    }
+
+    // Cancelar devolve o dinheiro recebido: o pedido não vai mais ser entregue.
+    const estornarPagamento = status === "cancelado" && pedidoRows[0].status_pagamento === "pago";
 
     await conexao.query("UPDATE pedidos SET status = ? WHERE id = ?", [status, id]);
 
     // Entrou em cancelado vindo de outro estado: devolve cada insumo usado
     // pelos itens (agrupado por insumo) e registra a devolução.
     if (status === "cancelado" && statusAnterior !== "cancelado") {
-      const [usos]: any = await conexao.query(
-        `SELECT pi.insumo_id AS insumo_id, SUM(pi.quantidade_necessaria * ip.quantidade) AS quantidade
-         FROM itens_pedido ip
-         JOIN produto_insumo pi ON pi.produto_id = ip.produto_id
-         WHERE ip.pedido_id = ?
-         GROUP BY pi.insumo_id`,
+      // Lê as movimentações de SAÍDA do pedido, e não a ficha técnica atual:
+      // a baixa foi o que de fato saiu do estoque. Se o gestor editar a
+      // receita depois da venda, reconstituir pelo JOIN devolvia quantidade
+      // errada (ou nada) e o insumo sumia do estoque para sempre.
+      const [usos] = await conexao.query<LinhaUso[]>(
+        `SELECT insumo_id, SUM(quantidade) AS quantidade
+         FROM movimentacoes_estoque
+         WHERE pedido_id = ? AND tipo = 'saida'
+         GROUP BY insumo_id`,
         [id]
       );
       for (const uso of usos) {
@@ -253,8 +307,34 @@ export async function atualizarStatus(req: Request, res: Response) {
       }
     }
 
+    if (estornarPagamento) {
+      await conexao.query(
+        "UPDATE pedidos SET status_pagamento = 'estornado' WHERE id = ?",
+        [id]
+      );
+    }
+
     await conexao.commit();
-    res.json({ id, status });
+
+    // Auditoria depois do commit: se falhasse antes, o status já teria mudado
+    // sem registro. O inverso (log de algo que não mudou) é bem menos grave.
+    await registrar(req, {
+      acao: "atualizar",
+      tabela: "pedidos",
+      registroId: id,
+      descricao: `Moveu o pedido #${id} de "${rotulo(statusAnterior)}" para "${rotulo(status)}"`,
+      antes: { status: statusAnterior, status_pagamento: pedidoRows[0].status_pagamento },
+      depois: {
+        status,
+        status_pagamento: estornarPagamento ? "estornado" : pedidoRows[0].status_pagamento,
+      },
+    });
+
+    res.json({
+      id,
+      status,
+      status_pagamento: estornarPagamento ? "estornado" : pedidoRows[0].status_pagamento,
+    });
   } catch (err) {
     await conexao.rollback();
     throw err;
@@ -263,7 +343,7 @@ export async function atualizarStatus(req: Request, res: Response) {
   }
 }
 
-export async function atualizarPagamento(req: Request, res: Response) {
+export async function atualizarPagamento(req: RequisicaoAutenticada, res: Response) {
   const id = Number(req.params.id);
   const { status_pagamento } = req.body;
 
@@ -272,12 +352,43 @@ export async function atualizarPagamento(req: Request, res: Response) {
     return res.status(400).json({ erro: "Status de pagamento inválido. Use: pendente, pago ou estornado." });
   }
 
-  const [result]: any = await pool.query(
+  const [anteriores] = await pool.query<LinhaStatus[]>(
+    "SELECT status, status_pagamento FROM pedidos WHERE id = ?",
+    [id]
+  );
+  const anterior = anteriores[0];
+  if (!anterior) {
+    return res.status(404).json({ erro: "Pedido não encontrado." });
+  }
+
+  // Cancelar um pedido que estava pago estorna o pagamento (feito na troca de
+  // status). Se aqui ainda coubesse marcar como pago, o resumo voltaria a
+  // contar dinheiro de encomenda devolvida.
+  if (anterior.status === "cancelado" && status_pagamento !== "estornado") {
+    return res.status(409).json({
+      erro: "Pedido cancelado só aceita pagamento estornado.",
+    });
+  }
+  if (anterior.status_pagamento === status_pagamento) {
+    return res.json({ id, status_pagamento });
+  }
+
+  const [result] = await pool.query<ResultSetHeader>(
     "UPDATE pedidos SET status_pagamento = ? WHERE id = ?",
     [status_pagamento, id]
   );
   if (result.affectedRows === 0) {
     return res.status(404).json({ erro: "Pedido não encontrado." });
   }
+
+  await registrar(req, {
+    acao: "atualizar",
+    tabela: "pedidos",
+    registroId: id,
+    descricao: `Pagamento do pedido #${id}: ${anterior.status_pagamento} → ${status_pagamento}`,
+    antes: { status_pagamento: anterior.status_pagamento },
+    depois: { status_pagamento },
+  });
+
   res.json({ id, status_pagamento });
 }

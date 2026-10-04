@@ -78,12 +78,19 @@ export function CarrinhoDrawer({
       <div className="flex flex-1 flex-col gap-3 overflow-y-auto p-5">
         {itens.length === 0 ? (
           <div className="px-2 py-10 text-center">
-            <p className="text-5xl" aria-hidden="true">
-              🧺
-            </p>
+            {/* Mesmo desenho do alerta de erro: ícone dentro de um disco.
+                Emoji de cesto aqui ficava deslocado ao lado de um menu que
+                usa só ícones. */}
+            <span
+              aria-hidden="true"
+              className="mx-auto grid h-16 w-16 place-items-center rounded-full border border-borda bg-areia/50 text-caramelo"
+            >
+              <ShoppingBasket size={28} />
+            </span>
             <b className="mt-3 block font-display text-xl">Sacola vazia</b>
             <p className="mt-1 text-sm text-textoSuave">
-              Que tal começar pelo destaque da casa? É só rolar um pouco. 👇
+              Que tal começar pelo destaque da casa? É só rolar um pouco para
+              baixo.
             </p>
             <div className="mt-5">
               <Botao variante="clara" onClick={aoVerCardapio}>

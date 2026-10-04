@@ -9,18 +9,20 @@ const UNIDADES = ["g", "kg", "ml", "l", "unidade"];
 // Criação e edição no mesmo modal: sem insumo abre vazio (criar), com
 // insumo preenche (editar). Estoque atual só aparece no criar — depois só
 // via movimentação (regra do backend, não da tela).
+export interface DadosInsumo {
+  nome: string;
+  unidade_medida: string;
+  quantidade_atual: number;
+  quantidade_minima: number;
+  custo_unitario: number;
+}
+
 interface PropriedadesModalInsumo {
   insumo: Insumo | null;
   salvando: boolean;
   erro: string | null;
   aoFechar: () => void;
-  aoSalvar: (dados: {
-    nome: string;
-    unidade_medida: string;
-    quantidade_atual: number;
-    quantidade_minima: number;
-    custo_unitario: number;
-  }) => void;
+  aoSalvar: (dados: DadosInsumo) => void;
 }
 
 export function ModalInsumo({

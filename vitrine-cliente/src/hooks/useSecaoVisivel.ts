@@ -29,8 +29,8 @@ export function useSecaoVisivel(ids: string[]): {
     });
     return () => observador.disconnect();
     // String estável como dependência: recria o observer só quando a lista
-    // de seções muda de verdade, não a cada render do App.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // de seções muda de verdade, não a cada render do App. A dependência
+    // está escrita à mão porque o plugin de hooks não vem neste projeto.
   }, [ids.join("|")]);
 
   // Scroll suave + destaque imediato (o observer confirma logo depois).

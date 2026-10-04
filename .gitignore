@@ -21,6 +21,10 @@ npm-debug.log*
 .DS_Store
 Thumbs.db
 
+# Fotos enviadas pelo gestor. Ficam no disco do servidor, não no git: são
+# conteúdo da loja (e podem ter kilo), não código.
+backend/uploads/
+
 # Editores
 .vscode/
 .idea/
@@ -28,3 +32,9 @@ Thumbs.db
 # Bastidor do desenvolvimento (não faz parte do projeto publicado)
 CONTEXTO_PROJETO.md
 prompt-opencode.md
+PROMPT-IMAGENS.md
+
+# Briefing de identidade: documento de trabalho para escolher a logo, já
+# cumpriu. A marca entregue está versionada em `marca/` e instalada em
+# `painel-admin/public/` e `vitrine-cliente/public/`.
+IDENTIDADE.md

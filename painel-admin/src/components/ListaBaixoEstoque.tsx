@@ -1,6 +1,7 @@
-import { TriangleAlert } from "lucide-react";
+import { CircleCheck, TriangleAlert } from "lucide-react";
 import type { Insumo } from "../types";
 import { Cartao } from "./ui/Cartao";
+import { VazioLista } from "./ui/VazioLista";
 
 // Insumos no limite (atual ≤ mínima). Cada linha mostra o quanto falta para
 // o mínimo — a dona decide a compra sem abrir outra tela.
@@ -11,9 +12,11 @@ export function ListaBaixoEstoque({ itens }: { itens: Insumo[] }): JSX.Element {
         <TriangleAlert size={20} className="text-rose-600" /> Estoque baixo
       </h2>
       {itens.length === 0 ? (
-        <p className="py-6 text-center text-sm text-textoSuave">
-          Tudo abastecido por aqui. Bom trabalho! ✅
-        </p>
+        <VazioLista
+          icone={CircleCheck}
+          tom="ok"
+          texto="Nada no limite: todos os insumos acima do estoque mínimo."
+        />
       ) : (
         <ul className="mt-3 flex flex-col gap-2">
           {itens.map((item) => (

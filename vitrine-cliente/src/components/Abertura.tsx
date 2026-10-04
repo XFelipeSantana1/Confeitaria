@@ -1,5 +1,6 @@
-import { MessageCircleHeart, Sparkles, Timer, UtensilsCrossed } from "lucide-react";
+import { MessageCircleHeart, Sparkles, Tag, UtensilsCrossed } from "lucide-react";
 import { Botao } from "./ui/Botao";
+import { formatarMoeda } from "../lib/formatarMoeda";
 
 // Abertura em dois tempos: foto limpa em tela cheia (sem véu nem moldura)
 // e, abaixo, o conteúdo sobre o cacau da página. A foto vende; o texto
@@ -7,21 +8,35 @@ import { Botao } from "./ui/Botao";
 interface PropriedadesAbertura {
   totalProdutos: number;
   totalCategorias: number;
+  /** Menor preço do cardápio, para o terceiro número ser um dado e não um
+   *  adorno. Antes a peça mostrava "hoje / pedido médio em minutos" sem
+   *  número nenhum — o banco não tem hora de entrega, então a promessa era
+   *  impossível de cumprir. */
+  menorPreco: number | null;
   aoComoFunciona: () => void;
 }
 
 export function Abertura({
   totalProdutos,
   totalCategorias,
+  menorPreco,
   aoComoFunciona,
 }: PropriedadesAbertura): JSX.Element {
   return (
     <section>
-      <div className="h-[44svh] min-h-[300px] w-full overflow-hidden">
+      {/* `44svh` com `min-h-[300px` era problema deitado: num celular com
+          360px de altura, 44% dá 158px — e o mínimo de 300px tomava quase a
+          tela inteira, empurrando o nome e o cardápio para fora da vista.
+          Agora a faixa acompanha a largura (vw), que é o que importa para
+          retrato de foto, e em paisagem ela encolhe em vez de crescer. */}
+      <div className="h-[52vw] max-h-[44svh] min-h-[240px] w-full overflow-hidden sm:min-h-[300px]">
         <img
-          src="https://images.unsplash.com/photo-1481391319762-47dff72954d9?auto=format&fit=crop&w=1600&q=80"
-          alt="Caixa com vários doces artesanais de chocolate"
+          src="/abertura.png"
+          alt="Caixa de doces artesanais: cupcakes com cobertura clara e coração, brigadeiros e truffas sobre linho"
           loading="eager"
+          fetchPriority="high"
+          width={1536}
+          height={1024}
           className="h-full w-full object-cover"
         />
       </div>
@@ -59,9 +74,10 @@ export function Abertura({
           </div>
           <div>
             <b className="flex items-center gap-1.5 font-display text-2xl text-tinta">
-              <Timer size={20} className="text-caramelo" /> hoje
+              <Tag size={18} className="text-caramelo" aria-hidden="true" />
+              {menorPreco === null ? "–" : formatarMoeda(menorPreco)}
             </b>
-            <span className="block text-xs text-textoSuave">pedido médio em minutos</span>
+            <span className="block text-xs text-textoSuave">a partir de</span>
           </div>
         </div>
       </div>

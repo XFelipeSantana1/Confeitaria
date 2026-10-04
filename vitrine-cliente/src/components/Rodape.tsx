@@ -1,4 +1,4 @@
-import { CakeSlice } from "lucide-react";
+import { SimboloClaro } from "./Marca";
 import { identificadorSecao } from "../lib/secoes";
 
 // Rodapé em colunas: marca + atalho por categoria (rola até a seção) +
@@ -19,12 +19,20 @@ export function Rodape({ secoes, aoAbrirConfiguracoes }: PropriedadesRodape): JS
     <footer className="mt-10 bg-tinta text-creme">
       <div className="mx-auto grid max-w-6xl gap-8 px-5 py-12 md:grid-cols-3">
         <div>
-          <p className="flex items-center gap-2 font-display text-2xl font-extrabold">
-            <span className="grid h-10 w-10 place-items-center rounded-2xl bg-carameloForte text-white">
-              <CakeSlice size={20} />
+          {/* O rodapé é a única tela em 3 colunas: no celular a primeira coluna fica
+              com ~80px de largura útil, e "Doce & Carinho" só precisa 78px —
+              com o símbolo do lado estourava 77px. Então abaixo de md fica só
+              o símbolo, que é a marca completa numa forma só. */}
+          <div className="flex items-center gap-2">
+            <span className="grid h-10 w-10 flex-none place-items-center rounded-2xl bg-carameloForte">
+              <SimboloClaro tamanho={24} />
             </span>
-            Confeito<em className="text-dourado">Gest</em>
-          </p>
+            {/* A fonte sobe por degrau e não de uma vez: em md a grade vira 3 colunas
+              e a primeira fica com ~216px, onde text-2xl estourava 4px. */}
+            <p className="hidden font-display text-lg font-extrabold sm:block md:text-xl lg:text-2xl">
+              Doce<em className="text-dourado">&amp;</em> Carinho
+            </p>
+          </div>
           <p className="mt-3 max-w-xs text-sm leading-relaxed text-creme/60">
             Confeitaria artesanal: do forno para a sua sacola em poucos toques,
             com pedido pronto no WhatsApp.
@@ -48,7 +56,7 @@ export function Rodape({ secoes, aoAbrirConfiguracoes }: PropriedadesRodape): JS
         <div>
           <b className="text-xs font-bold uppercase tracking-widest text-dourado">A casa</b>
           <p className="mt-3 text-sm leading-relaxed text-creme/60">
-            TCC de Desenvolvimento de Sistemas — Etec · feito com carinho 🍓
+            Doces feitos à mão, todos os dias. Do balcão para a sua sacola.
           </p>
           <button
             onClick={aoAbrirConfiguracoes}

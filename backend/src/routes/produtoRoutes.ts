@@ -2,7 +2,6 @@ import { Router } from "express";
 import {
   listarPublico,
   listarTodos,
-  buscarPorId,
   buscarPorIdAdmin,
   criar,
   atualizar,
@@ -22,7 +21,7 @@ router.get("/admin/:id", autenticar, buscarPorIdAdmin);
 
 // Rotas públicas -> vitrine do cliente (detalhe SEM ficha técnica)
 router.get("/", listarPublico);
-router.get("/:id", buscarPorId);
+
 
 router.post("/", autenticar, criar);
 router.put("/:id", autenticar, atualizar);

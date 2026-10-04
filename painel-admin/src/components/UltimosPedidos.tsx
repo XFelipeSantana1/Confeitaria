@@ -1,9 +1,10 @@
 import { Link } from "react-router-dom";
-import { History } from "lucide-react";
+import { History, Receipt } from "lucide-react";
 import type { Pedido } from "../types";
 import { formatarMoeda } from "../lib/formatarMoeda";
 import { rotuloStatus, tomStatus } from "../lib/pedido";
 import { Cartao } from "./ui/Cartao";
+import { VazioLista } from "./ui/VazioLista";
 
 // Últimos pedidos (os 5 mais recentes, que vêm ordenados da API): atalho
 // vivo para a operação — quem abre o Resumo vê movimento, não só número.
@@ -20,9 +21,10 @@ export function UltimosPedidos({ pedidos }: { pedidos: Pedido[] }): JSX.Element 
         </Link>
       </div>
       {recentes.length === 0 ? (
-        <p className="py-6 text-center text-sm text-textoSuave">
-          O movimento da loja aparece aqui assim que o primeiro pedido entrar. 🧾
-        </p>
+        <VazioLista
+          icone={Receipt}
+          texto="Nenhum pedido ainda. O movimento da loja aparece aqui."
+        />
       ) : (
         <ul className="mt-3 flex flex-col gap-2">
           {recentes.map((pedido) => (

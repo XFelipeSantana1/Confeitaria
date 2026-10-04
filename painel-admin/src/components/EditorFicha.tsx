@@ -1,6 +1,9 @@
 import { Plus, Trash2 } from "lucide-react";
 import type { Insumo } from "../types";
 
+/** Chave única por linha da ficha. Ver o uso no botão "Adicionar". */
+let proximaChave = 1;
+
 // Editor de linhas da ficha técnica: cada linha é insumo + quantidade.
 // Linha sem insumo não entra no salvamento (o pai filtra as vazias).
 export interface LinhaFicha {
@@ -64,7 +67,10 @@ export function EditorFicha({ linhas, insumos, aoMudar }: PropriedadesEditorFich
       })}
       <button
         type="button"
-        onClick={() => aoMudar([...linhas, { chave: Date.now(), insumo_id: "", quantidade: "" }])}
+        // Contador de módulo, e não Date.now(): duas linhas adicionadas no
+        // mesmo milissegundo recebiam a mesma chave, e o React avisava de chave
+        // duplicada e podia mostrar a linha errada ao remover uma delas.
+        onClick={() => aoMudar([...linhas, { chave: proximaChave++, insumo_id: "", quantidade: "" }])}
         className="flex items-center gap-1.5 self-start rounded-full border border-dashed border-caramelo px-4 py-1.5 text-xs font-bold text-carameloForte hover:bg-caramelo/10 transition-colors"
       >
         <Plus size={14} /> Adicionar ingrediente

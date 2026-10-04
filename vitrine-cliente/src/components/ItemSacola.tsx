@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Trash2 } from "lucide-react";
 import type { ItemCarrinho } from "../types";
 import {
@@ -24,6 +24,13 @@ export function ItemSacola({
   const [corInicial, corFinal] = gradienteParaProduto(produto);
   const imagem = imagemParaProduto(produto);
   const [falhouImagem, definirFalhouImagem] = useState(false);
+
+  // Zera quando o item muda de produto: sem isso, a foto que falhou numa
+  // listagem antiga continuava "quebrada" depois de recarregar, porque o
+  // componente é reaproveitado pelo React no lugar, não recriado.
+  useEffect(() => {
+    definirFalhouImagem(false);
+  }, [produto.id]);
 
   return (
     <div className="flex items-center gap-3 rounded-2xl border border-borda bg-white p-2.5">

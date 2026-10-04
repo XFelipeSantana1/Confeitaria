@@ -6,6 +6,8 @@ export interface Usuario {
   nome: string;
   email: string;
   cargo: "admin" | "gestor";
+  /** Caminho da foto no servidor ("/uploads/…"), ou null se não houver. */
+  imagem_url?: string | null;
 }
 
 /** Sessão guardada no navegador: token + quem é o dono dele. */
@@ -75,8 +77,6 @@ export interface ProdutoAdmin {
 /** Linha da ficha técnica (receita): insumo + quanto vai no produto. */
 export interface ItemFicha {
   insumo_id: number;
-  insumo_nome?: string;
-  unidade_medida?: string;
   quantidade_necessaria: number;
 }
 
@@ -95,7 +95,27 @@ export const STATUS_PEDIDO = [
   "cancelado",
 ] as const;
 
-export type StatusPedido = (typeof STATUS_PEDIDO)[number];
-
 /** Status de pagamento (enum do banco). */
 export const STATUS_PAGAMENTO = ["pendente", "pago", "estornado"] as const;
+
+/** Rótulo de cada ação na lista. Só as quatro que o painel realmente grava. */
+export const ROTULO_ACAO = {
+  criar: "criou",
+  atualizar: "editou",
+  excluir: "excluiu",
+  mover: "movimentou",
+} as const;
+
+/** Uma linha da trilha de auditoria. */
+export interface Registro {
+  id: number;
+  usuario_nome: string;
+  acao: keyof typeof ROTULO_ACAO;
+  registro_id: number | null;
+  descricao: string;
+  /** Só os campos que mudaram, não o registro inteiro — o log mostra o diff. */
+  antes: Record<string, unknown> | null;
+  depois: Record<string, unknown> | null;
+  /** ISO com Z explícito (ver api/registros.ts): o MySQL manda hora local. */
+  criado_em: string;
+}

@@ -21,7 +21,7 @@ export function AlertaErro({
         <CloudOff size={30} />
       </p>
       <h3 className="mt-4 font-display text-2xl font-bold text-tinta">
-        O forno esfriou por aqui 🔌
+        O forno esfriou por aqui
       </h3>
       <p className="mt-2 text-sm text-textoSuave">
         Não consegui falar com a cozinha ({mensagem}). Confira se o backend

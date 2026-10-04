@@ -5,7 +5,7 @@ const FRASES = [
   "feito à mão",
   "receitas de família",
   "ingredientes selecionados",
-  "encomendas pelo whatsapp",
+  "encomendas pelo WhatsApp",
 ];
 
 export function FaixaRolante(): JSX.Element {

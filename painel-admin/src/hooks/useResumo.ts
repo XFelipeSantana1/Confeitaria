@@ -3,7 +3,7 @@ import type { Insumo, Pedido, ProdutoVendido } from "../types";
 import { ErroApi, listarBaixoEstoque, listarMaisVendidos, listarPedidos } from "../lib/api";
 
 // Dados do Resumo: três buscas em paralelo com carregando + erro (padrão do
-// AuthDrawer). O token expira? ErroApi 401 sobe para a página deslogar.
+// painel). O token expira? ErroApi 401 sobe para a página deslogar.
 export interface DadosResumo {
   pedidos: Pedido[];
   baixoEstoque: Insumo[];
@@ -32,6 +32,9 @@ export function useResumo(token: string | null): DadosResumo & {
     }
     definirCarregando(true);
     definirErro(null);
+    // Zera a partir de cada busca: sem isso, um 401 isolado deixaria a tela
+    // presa no "sair" mesmo depois de a sessão voltar.
+    definirPrecisaLogin(false);
     try {
       const [pedidos, baixoEstoque, maisVendidos] = await Promise.all([
         listarPedidos(token),

@@ -1,4 +1,5 @@
 import type { ButtonHTMLAttributes } from "react";
+import { Loader2 } from "lucide-react";
 
 // Botão no espírito shadcn/ui (variantes por prop, classes utilitárias):
 // evita trazer a lib inteira + Radix só para três estilos de botão,
@@ -16,19 +17,29 @@ const ESTILOS: Record<VarianteBotao, string> = {
 
 interface PropriedadesBotao extends ButtonHTMLAttributes<HTMLButtonElement> {
   variante?: VarianteBotao;
+  // Carregando = o botão está trabalhando. Gira um spinner, trava o clique e
+  // announces para leitor de tela: sem isso, dá para disparar a ação 5 vezes.
+  carregando?: boolean;
 }
 
 export function Botao({
   variante = "escura",
+  carregando = false,
+  disabled = false,
   children,
   className = "",
   ...resto
 }: PropriedadesBotao): JSX.Element {
   return (
     <button
-      className={`inline-flex items-center justify-center gap-2 rounded-full px-6 py-3 font-corpo text-sm font-bold transition-all active:scale-95 ${ESTILOS[variante]} ${className}`}
       {...resto}
+      disabled={disabled || carregando}
+      aria-busy={carregando}
+      className={`inline-flex items-center justify-center gap-2 rounded-full px-6 py-3 font-corpo text-sm font-bold transition-all active:scale-95 disabled:cursor-progress disabled:opacity-75 ${ESTILOS[variante]} ${className}`}
     >
+      {carregando && (
+        <Loader2 size={16} className="motion-safe:animate-spin" aria-hidden="true" />
+      )}
       {children}
     </button>
   );

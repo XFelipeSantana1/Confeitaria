@@ -4,6 +4,7 @@ import type { Categoria, Insumo, ProdutoAdmin } from "../types";
 import { Entrada } from "./ui/Entrada";
 import { Botao } from "./ui/Botao";
 import { EditorFicha, type LinhaFicha } from "./EditorFicha";
+import { CampoImagem } from "./CampoImagem";
 
 export interface DadosProduto {
   nome: string;
@@ -25,6 +26,10 @@ interface PropriedadesModalProduto {
   erro: string | null;
   aoFechar: () => void;
   aoSalvar: (dados: DadosProduto) => void;
+  // Solta no servidor no momento da escolha: guardar o File em estado e mandar
+  // junto no submit seguraria o arquivo em memória durante toda a edição e
+  // falharia no refresh acidental do formulário.
+  aoEnviarImagem: (arquivo: File) => Promise<string>;
 }
 
 let proximaChave = 1;
@@ -38,6 +43,7 @@ export function ModalProduto({
   erro,
   aoFechar,
   aoSalvar,
+  aoEnviarImagem,
 }: PropriedadesModalProduto): JSX.Element {
   const [nome, definirNome] = useState(produto?.nome ?? "");
   const [descricao, definirDescricao] = useState(produto?.descricao ?? "");
@@ -73,8 +79,15 @@ export function ModalProduto({
   }
 
   return (
-    <div className="fixed inset-0 z-[70] grid place-items-center overflow-y-auto bg-tinta/50 p-4" role="dialog" aria-modal="true" aria-label={produto ? "Editar produto" : "Novo produto"}>
-      <form onSubmit={enviar} className="my-8 flex w-full max-w-lg flex-col gap-3 rounded-3xl bg-white p-6 text-tinta shadow-Cartao">
+    <div className="fixed inset-0 z-[70] grid place-items-center overflow-y-auto bg-tinta/50 p-3 sm:p-4" role="dialog" aria-modal="true" aria-label={produto ? "Editar produto" : "Novo produto"}>
+      {/* max-h + overflow no mobile: o formulário é o mais longo do painel
+          (nome, descrição, preço, categoria, foto e a ficha técnica) e sem
+          altura limitada o rodão some e o botão Cadastrar fica fora da tela.
+          No desktop cabe inteiro, então a altura deixa de ser limitada. */}
+      <form
+        onSubmit={enviar}
+        className="my-4 flex max-h-[calc(100dvh-1.5rem)] w-full max-w-lg flex-col gap-3 overflow-y-auto rounded-3xl bg-white p-4 text-tinta shadow-Cartao sm:my-8 sm:max-h-none sm:p-6"
+      >
         <div className="flex items-center justify-between">
           <h3 className="font-display text-xl font-bold">{produto ? "Editar produto" : "Novo produto"}</h3>
           <button type="button" onClick={aoFechar} aria-label="Fechar" className="grid h-10 w-10 place-items-center rounded-xl border border-borda">
@@ -98,7 +111,13 @@ export function ModalProduto({
             </select>
           </label>
         </div>
-        <Entrada id="prod-imagem" rotulo="URL da foto (opcional)" value={imagem} onChange={(e) => definirImagem(e.target.value)} placeholder="https://…" />
+        <CampoImagem
+          valor={imagem}
+          rotulo="Foto do doce"
+          aoMudar={definirImagem}
+          aoEnviar={aoEnviarImagem}
+          salvando={salvando}
+        />
         <EditorFicha linhas={linhas} insumos={insumos} aoMudar={definirLinhas} />
         {erro ? (
           <p role="alert" className="rounded-xl bg-rose-50 px-3 py-2 text-sm font-semibold text-rose-700">{erro}</p>

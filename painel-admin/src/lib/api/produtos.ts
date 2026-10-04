@@ -1,7 +1,7 @@
 // Produtos e categorias: CRUD, ficha técnica e ranking de vendas.
 
 import type { Categoria, ItemFicha, ProdutoAdmin } from "../../types";
-import { ErroApi, requisitar, BASE } from "./base";
+import { ErroApi, ehVerdadeiro, requisitar, BASE } from "./base";
 
 /** GET /api/produtos/admin/todos — tabela do painel (com inativos). */
 export async function listarProdutosAdmin(token: string): Promise<ProdutoAdmin[]> {
@@ -14,7 +14,7 @@ export async function listarProdutosAdmin(token: string): Promise<ProdutoAdmin[]
     categoria_id: p.categoria_id == null ? null : Number(p.categoria_id),
     categoria: (p.categoria as string | null) ?? null,
     imagem_url: (p.imagem_url as string | null) ?? null,
-    ativo: Boolean(p.ativo),
+    ativo: ehVerdadeiro(p.ativo),
   }));
 }
 
@@ -34,11 +34,10 @@ export async function obterProdutoAdmin(
       categoria_id: dados.categoria_id == null ? null : Number(dados.categoria_id),
       categoria: null,
       imagem_url: (dados.imagem_url as string | null) ?? null,
-      ativo: Boolean(dados.ativo),
+      ativo: ehVerdadeiro(dados.ativo),
     },
     ficha: bruta.map((item) => ({
       insumo_id: Number(item.id),
-      insumo_nome: String(item.nome ?? ""),
       unidade_medida: String(item.unidade_medida ?? ""),
       quantidade_necessaria: Number(item.quantidade_necessaria) || 0,
     })),

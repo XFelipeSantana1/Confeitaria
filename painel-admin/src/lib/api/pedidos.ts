@@ -20,9 +20,18 @@ export async function listarPedidos(token: string): Promise<Pedido[]> {
   }));
 }
 
-/** GET /api/pedidos/:id — cabeçalho + itens (normaliza números do DECIMAL). */
-export async function obterPedido(token: string, id: number): Promise<DetalhePedido> {
-  const dados = await requisitar<Record<string, unknown>>(`/pedidos/${id}`, token);
+/**
+ * GET /api/pedidos/:id — cabeçalho + itens (normaliza números do DECIMAL).
+ *
+ * O `signal` existe para o drawer: sem ele, abrir dois pedidos seguidos deixa
+ * a resposta do primeiro chegar depois e pintar os dados do pedido errado.
+ */
+export async function obterPedido(
+  token: string,
+  id: number,
+  signal?: AbortSignal,
+): Promise<DetalhePedido> {
+  const dados = await requisitar<Record<string, unknown>>(`/pedidos/${id}`, token, { signal });
   const brutos = (dados.itens as Array<Record<string, unknown>>) ?? [];
   return {
     id: Number(dados.id),

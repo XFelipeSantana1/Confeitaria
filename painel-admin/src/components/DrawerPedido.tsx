@@ -30,23 +30,34 @@ export function DrawerPedido({
   const [agindo, definirAgindo] = useState(false);
 
   // Busca o detalhe quando um pedido é selecionado (efeito por seleção).
+  //
+  // O `AbortController` não é decoração: abrir o pedido #5 e logo o #6 fazia a
+  // primeira consulta voltar depois e o drawer pintar os dados do #5 com o
+  // título "Pedido #6". O cleanup do efeito roda antes do próximo efeito, mas
+  // o fetch já tinha disparado — quem precisa se descartar é a própria
+  // resposta, e abortar é o jeito de dizer isso ao navegador.
   useEffect(() => {
     if (pedidoId === null) {
       definirDetalhe(null);
+      definirErro(null);
+      definirCarregando(false);
       return;
     }
+    const cancelamento = new AbortController();
     async function buscar(): Promise<void> {
       definirCarregando(true);
       definirErro(null);
       try {
-        definirDetalhe(await obterPedido(token, pedidoId as number));
+        definirDetalhe(await obterPedido(token, pedidoId as number, cancelamento.signal));
       } catch (falha) {
+        if (cancelamento.signal.aborted) return;
         definirErro(falha instanceof Error ? falha.message : "Não foi possível abrir o pedido.");
       } finally {
-        definirCarregando(false);
+        if (!cancelamento.signal.aborted) definirCarregando(false);
       }
     }
     buscar();
+    return () => cancelamento.abort();
   }, [pedidoId, token]);
 
   useEffect(() => {

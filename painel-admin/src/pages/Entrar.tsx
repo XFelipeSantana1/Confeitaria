@@ -1,13 +1,18 @@
 import { useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
-import { CakeSlice, Check, LogIn } from "lucide-react";
+import { LogIn } from "lucide-react";
 import { useAutenticacao } from "../hooks/useAutenticacao";
 import { ErroApi } from "../lib/api";
 import { Botao } from "../components/ui/Botao";
 import { Entrada } from "../components/ui/Entrada";
+import { MarcaLogin } from "../components/MarcaLogin";
 
-// Porta de entrada do painel. Mesmo padrão do AuthDrawer: carregando + erro
-// + try/catch/finally; 401 vira "credenciais" (sem dizer se é email ou senha).
+// Porta de entrada do painel. Mesmo padrão do painel: carregando + erro
+// + try/catch/finally; 401 vira "credenciais" (sem dizer se foi email ou senha).
+//
+// No desktop a tela é dividida: foto à esquerda, formulário à direita. No
+// celular a foto vira uma faixa curta no topo e o formulário vem logo abaixo
+// — antes o gestor via só o formulário, sem nenhuma pista de onde estava.
 export function Entrar(): JSX.Element {
   const { entrarComSenha } = useAutenticacao();
   const navegar = useNavigate();
@@ -39,64 +44,50 @@ export function Entrar(): JSX.Element {
   }
 
   return (
-    <div className="grid min-h-screen font-corpo md:grid-cols-2">
-      {/* Lado marca: vende o sonho (só desktop — no mobile é só o form). */}
-      <div className="relative hidden flex-col justify-between overflow-hidden bg-tinta p-10 text-creme md:flex">
-        <p className="flex items-center gap-2 font-display text-2xl font-extrabold">
-          <span className="grid h-11 w-11 place-items-center rounded-2xl bg-carameloForte text-white">
-            <CakeSlice size={22} />
-          </span>
-          Confeito<em className="text-dourado">Gest</em>
-        </p>
-        <div>
-          <h1 className="max-w-md font-display text-4xl font-bold leading-tight">
-            A sua confeitaria <em className="text-dourado">no controle.</em>
-          </h1>
-          <ul className="mt-6 flex flex-col gap-3 text-sm text-creme/70">
-            <li className="flex items-center gap-2"><Check size={16} className="text-dourado" /> Pedidos do bot caindo direto no painel</li>
-            <li className="flex items-center gap-2"><Check size={16} className="text-dourado" /> Estoque baixado sozinho a cada venda</li>
-            <li className="flex items-center gap-2"><Check size={16} className="text-dourado" /> Ficha técnica sem furo de estoque</li>
-          </ul>
-        </div>
-        <p className="text-xs text-creme/40">TCC Desenvolvimento de Sistemas — Etec 🍓</p>
-      </div>
+    <div className="flex min-h-screen flex-col font-corpo md:grid md:grid-cols-2">
+      <MarcaLogin compacta />
+      <MarcaLogin />
 
-      {/* Lado acesso. */}
-      <div className="grid place-items-center bg-creme px-4">
+      <div className="grid flex-1 place-items-center bg-creme px-4 py-10">
         <form
           onSubmit={aoEnviar}
           className="w-full max-w-sm rounded-3xl border border-borda bg-white p-7 shadow-Cartao"
         >
-        <h1 className="font-display text-xl font-bold text-tinta md:hidden">Entrar no painel</h1>
-        <div className="mt-4 flex flex-col gap-3">
-          <Entrada
-            id="email"
-            rotulo="Email"
-            type="email"
-            autoComplete="username"
-            placeholder="voce@confeitaria.com"
-            value={email}
-            onChange={(evento) => definirEmail(evento.target.value)}
-          />
-          <Entrada
-            id="senha"
-            rotulo="Senha"
-            type="password"
-            autoComplete="current-password"
-            placeholder="••••••••"
-            value={senha}
-            onChange={(evento) => definirSenha(evento.target.value)}
-          />
-        </div>
-        {erro ? (
-          <p role="alert" className="mt-3 rounded-xl bg-rose-50 px-3 py-2 text-sm font-semibold text-rose-700">
-            {erro}
-          </p>
-        ) : null}
-        <Botao type="submit" disabled={carregando} className="mt-4 w-full py-3">
-          <LogIn size={17} /> {carregando ? "Entrando…" : "Entrar"}
-        </Botao>
-      </form>
+          <h1 className="font-display text-xl font-bold text-tinta">
+            Entrar no painel
+          </h1>
+          <div className="mt-4 flex flex-col gap-3">
+            <Entrada
+              id="email"
+              rotulo="Email"
+              type="email"
+              autoComplete="username"
+              placeholder="voce@confeitaria.com"
+              value={email}
+              onChange={(evento) => definirEmail(evento.target.value)}
+            />
+            <Entrada
+              id="senha"
+              rotulo="Senha"
+              type="password"
+              autoComplete="current-password"
+              placeholder="••••••••"
+              value={senha}
+              onChange={(evento) => definirSenha(evento.target.value)}
+            />
+          </div>
+          {erro ? (
+            <p
+              role="alert"
+              className="mt-3 rounded-xl bg-rose-50 px-3 py-2 text-sm font-semibold text-rose-700"
+            >
+              {erro}
+            </p>
+          ) : null}
+          <Botao type="submit" carregando={carregando} className="mt-4 w-full py-3">
+            <LogIn size={17} /> {carregando ? "Entrando…" : "Entrar"}
+          </Botao>
+        </form>
       </div>
     </div>
   );

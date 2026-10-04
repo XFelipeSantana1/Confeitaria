@@ -43,6 +43,9 @@ export function useInsumos(token: string | null): {
     }
     definirCarregando(true);
     definirErro(null);
+    // Zera a partir de cada busca: sem isso, um 401 isolado deixaria a tela
+    // presa no "sair" mesmo depois de a sessão voltar.
+    definirPrecisaLogin(false);
     try {
       definirInsumos(await listarInsumos(token));
     } catch (falha) {

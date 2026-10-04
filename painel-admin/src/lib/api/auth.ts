@@ -24,10 +24,16 @@ export async function obterUsuario(token: string): Promise<Usuario> {
   return requisitar<Usuario>("/auth/me", token);
 }
 
-/** PUT /api/auth/me — nome/email + troca de senha (com senha atual). */
+/** PUT /api/auth/me — nome/email, foto e troca de senha (com senha atual). */
 export async function atualizarPerfil(
   token: string,
-  dados: { nome?: string; email?: string; senha_atual?: string; senha_nova?: string },
+  dados: {
+    nome?: string;
+    email?: string;
+    imagem_url?: string | null;
+    senha_atual?: string;
+    senha_nova?: string;
+  },
 ): Promise<Usuario> {
   return requisitar<Usuario>("/auth/me", token, {
     method: "PUT",

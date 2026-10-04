@@ -39,6 +39,17 @@ body {
   }
 }
 
+/* "surgir" anima SÓ a opacidade do balão de confirmação.
+   O "subir" acima mexe em transform, e o balão usa -translate-x-1/2 para se
+   centralizar: durante a animação o transform do keyframe vencia o do
+   Tailwind e o balão saía do centro, parecendo sumir. Aqui a entrada é só
+   fade, sem mexer em positionamento. */
+@keyframes surgir {
+  from {
+    opacity: 0;
+  }
+}
+
 @keyframes deslizar {
   from {
     transform: translateX(40px);

@@ -39,11 +39,12 @@ export function imagemParaProduto(produto: Produto): string | null {
   ) {
     return FOTO_SALGADO;
   }
-  const categoria = produto.categoria.toLowerCase();
+  // Produto sem categoria não tem texto para comparar: cai na foto padrão em
+  // vez de quebrar em produto.categoria.toLowerCase().
+  const categoria = produto.categoria?.toLowerCase() ?? "";
   if (categoria.includes("bolo")) return FOTO_BOLO;
   if (categoria.includes("salg")) return FOTO_SALGADO;
   if (categoria.includes("doce")) return FOTO_GRANULADO;
-  return FOTO_TRUFA;
   return FOTO_TRUFA;
 }
 

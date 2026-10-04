@@ -36,7 +36,7 @@ export function agruparPorCategoria(
     }))
     .filter((secao) => secao.itens.length > 0);
   const semCategoria = produtos.filter(
-    (produto) => !categorias.includes(produto.categoria),
+    (produto) => produto.categoria === null || !categorias.includes(produto.categoria),
   );
   if (semCategoria.length > 0) {
     secoes.push({ categoria: "Outros", itens: semCategoria });

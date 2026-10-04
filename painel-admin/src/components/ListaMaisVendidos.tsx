@@ -1,6 +1,7 @@
-import { Trophy } from "lucide-react";
+import { Sparkles, Trophy } from "lucide-react";
 import type { ProdutoVendido } from "../types";
 import { Cartao } from "./ui/Cartao";
+import { VazioLista } from "./ui/VazioLista";
 
 // Ranking de vendas (GET /admin/mais-vendidos). Vazio não é erro: loja nova
 // ainda não vendeu — mensagem orienta em vez de tabela vazia.
@@ -11,9 +12,10 @@ export function ListaMaisVendidos({ itens }: { itens: ProdutoVendido[] }): JSX.E
         <Trophy size={20} className="text-carameloForte" /> Mais vendidos
       </h2>
       {itens.length === 0 ? (
-        <p className="py-6 text-center text-sm text-textoSuave">
-          Nenhuma venda registrada ainda — os queridinhos aparecem aqui. 🏆
-        </p>
+        <VazioLista
+          icone={Sparkles}
+          texto="Sem vendas ainda. O ranking aparece no primeiro pedido entregue."
+        />
       ) : (
         <ol className="mt-3 flex flex-col gap-3">
           {itens.map((item, indice) => {

@@ -1,26 +1,21 @@
-import { useState } from "react";
-import { Plus, RotateCcw } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Plus, RotateCcw, Wheat, Wrench } from "lucide-react";
 import { useAutenticacao } from "../hooks/useAutenticacao";
 import { useInsumos } from "../hooks/useInsumos";
 import type { Insumo } from "../types";
 import { ErroApi } from "../lib/api";
 import { Cartao } from "../components/ui/Cartao";
+import { EsqueletoTabela } from "../components/ui/EsqueletoTabela";
 import { Botao } from "../components/ui/Botao";
+import { DiscoVazio } from "../components/ui/DiscoVazio";
+import { CabecalhoSecao } from "../components/CabecalhoSecao";
 import { TabelaInsumos } from "../components/TabelaInsumos";
-import { ModalConfirmacao } from "../components/ModalConfirmacao";
-import { ModalInsumo } from "../components/ModalInsumo";
-import { ModalMovimentacao } from "../components/ModalMovimentacao";
+import { ModaisInsumo, type JanelaInsumo } from "../components/ModaisInsumo";
 
 // Insumos (/painel/insumos): tabela com CRUD + movimentação auditada.
 // Linha em alerta (atual ≤ mínima) ganha selo; excluir com vínculo volta
 // 409 explicado. Confirmação de excluir via diálogo nativo (ferramenta
 // interna, sem cliente final envolvido).
-type Janela =
-  | { tipo: "fechada" }
-  | { tipo: "insumo"; insumo: Insumo | null }
-  | { tipo: "movimentar"; insumo: Insumo }
-  | { tipo: "excluir"; insumo: Insumo };
-
 export function Insumos(): JSX.Element {
   const { sessao, sair } = useAutenticacao();
   const {
@@ -31,18 +26,23 @@ export function Insumos(): JSX.Element {
     buscarNovamente,
     criar,
     atualizar,
-    remover,
     movimentar,
+    remover,
   } = useInsumos(sessao?.token ?? null);
 
-  const [janela, definirJanela] = useState<Janela>({ tipo: "fechada" });
+  const [janela, definirJanela] = useState<JanelaInsumo>({ tipo: "fechada" });
   const [salvando, definirSalvando] = useState(false);
   const [erroModal, definirErroModal] = useState<string | null>(null);
 
-  if (precisaLogin) sair();
+  // Efeito, e não `if` no corpo do render: `sair()` atualiza o estado do
+  // provedor de sessão, e mexer no estado de outro componente durante o
+  // render é o que o React avisa em tempo de execução.
+  useEffect(() => {
+    if (precisaLogin) sair();
+  }, [precisaLogin, sair]);
 
-  // Molde: executa a ação, fecha em sucesso ou mostra o erro do backend.
-  async function executar(acao: () => Promise<void>): Promise<void> {
+
+  async function executar(acao: () => Promise<unknown>): Promise<void> {
     definirSalvando(true);
     definirErroModal(null);
     try {
@@ -57,29 +57,33 @@ export function Insumos(): JSX.Element {
     }
   }
 
-  async function excluir(): Promise<void> {
-    if (janela.tipo !== "excluir") return;
-    const id = janela.insumo.id;
-    await executar(() => remover(id));
+  // Abrir a janela sempre limpa o erro: reaproveitar o modal com o aviso do
+  // save anterior faz o gestor achar que a falha continua lá.
+  function abrir(tipo: Exclude<JanelaInsumo["tipo"], "fechada">, insumo: Insumo | null = null): void {
+    definirErroModal(null);
+    definirJanela({ tipo, insumo } as JanelaInsumo);
   }
 
   return (
-    <div className="flex flex-col gap-5">
-      <div className="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <p className="text-xs font-bold uppercase tracking-widest text-carameloForte">estoque</p>
-          <h1 className="font-display text-3xl font-bold text-tinta">Insumos</h1>
-        </div>
-        <Botao onClick={() => { definirErroModal(null); definirJanela({ tipo: "insumo", insumo: null }); }}>
-          <Plus size={17} /> Novo insumo
-        </Botao>
-      </div>
+    <div className="flex flex-col gap-4 sm:gap-5">
+      <CabecalhoSecao
+        rotulo="estoque"
+        titulo="Insumos"
+        acao={
+          <Botao onClick={() => abrir("insumo")}>
+            <Plus size={17} /> Novo insumo
+          </Botao>
+        }
+      />
 
       {carregando ? (
-        <div className="h-64 animate-pulse rounded-3xl border border-borda bg-white" aria-busy="true" aria-label="Carregando insumos" />
+        <EsqueletoTabela linhas={4} />
       ) : erro ? (
         <Cartao className="text-center">
-          <p className="font-display text-xl font-bold text-tinta">O forno esfriou por aqui 🔌</p>
+          <p className="flex items-center justify-center gap-2 font-display text-xl font-bold text-tinta">
+            <Wrench size={19} className="text-caramelo" aria-hidden="true" />
+            O forno esfriou por aqui
+          </p>
           <p className="mt-1 text-sm text-textoSuave">{erro}</p>
           <div className="mt-4">
             <Botao onClick={buscarNovamente}>
@@ -89,61 +93,49 @@ export function Insumos(): JSX.Element {
         </Cartao>
       ) : insumos.length === 0 ? (
         <Cartao className="py-12 text-center">
-          <p className="text-5xl" aria-hidden="true">🌾</p>
+          <DiscoVazio>
+            <Wheat size={26} />
+          </DiscoVazio>
           <b className="mt-2 block font-display text-xl text-tinta">Nenhum insumo cadastrado</b>
           <p className="mt-1 text-sm text-textoSuave">Cadastre o primeiro para montar as fichas técnicas.</p>
         </Cartao>
       ) : (
         <TabelaInsumos
           insumos={insumos}
-          aoMovimentar={(insumo) => { definirErroModal(null); definirJanela({ tipo: "movimentar", insumo }); }}
-          aoEditar={(insumo) => { definirErroModal(null); definirJanela({ tipo: "insumo", insumo }); }}
-          aoExcluir={(insumo) => { definirErroModal(null); definirJanela({ tipo: "excluir", insumo }); }}
+          aoMovimentar={(insumo) => abrir("movimentar", insumo)}
+          aoEditar={(insumo) => abrir("insumo", insumo)}
+          aoExcluir={(insumo) => abrir("excluir", insumo)}
         />
       )}
 
-      {janela.tipo === "insumo" ? (
-        <ModalInsumo
-          key={janela.insumo?.id ?? "novo"}
-          insumo={janela.insumo}
-          salvando={salvando}
-          erro={erroModal}
-          aoFechar={() => definirJanela({ tipo: "fechada" })}
-          aoSalvar={(dados) =>
-            executar(() =>
-              janela.insumo
-                ? atualizar(janela.insumo.id, {
-                    nome: dados.nome,
-                    unidade_medida: dados.unidade_medida,
-                    quantidade_minima: dados.quantidade_minima,
-                    custo_unitario: dados.custo_unitario,
-                  })
-                : criar(dados),
-            )
-          }
-        />
-      ) : null}
-      {janela.tipo === "excluir" ? (
-        <ModalConfirmacao
-          titulo={`Remover "${janela.insumo.nome}"?`}
-          mensagem="O cadastro sai da lista. Se ele estiver em alguma receita ou movimentação, a remoção é bloqueada com aviso."
-          textoConfirmar="Remover"
-          processando={salvando}
-          erro={erroModal}
-          aoFechar={() => definirJanela({ tipo: "fechada" })}
-          aoConfirmar={excluir}
-        />
-      ) : null}
-      {janela.tipo === "movimentar" ? (
-        <ModalMovimentacao
-          key={janela.insumo.id}
-          insumo={janela.insumo}
-          salvando={salvando}
-          erro={erroModal}
-          aoFechar={() => definirJanela({ tipo: "fechada" })}
-          aoSalvar={(dados) => executar(() => movimentar(janela.insumo.id, dados))}
-        />
-      ) : null}
+      <ModaisInsumo
+        janela={janela}
+        salvando={salvando}
+        erroModal={erroModal}
+        aoFechar={() => definirJanela({ tipo: "fechada" })}
+        aoSalvar={(dados) =>
+          void executar(() =>
+            janela.tipo === "insumo" && janela.insumo
+              ? atualizar(janela.insumo.id, {
+                  nome: dados.nome,
+                  unidade_medida: dados.unidade_medida,
+                  quantidade_minima: dados.quantidade_minima,
+                  custo_unitario: dados.custo_unitario,
+                })
+              : criar(dados),
+          )
+        }
+        aoSalvarMovimentacao={(dados) =>
+          void executar(() =>
+            janela.tipo === "movimentar"
+              ? movimentar(janela.insumo.id, dados)
+              : Promise.resolve(),
+          )
+        }
+        aoConfirmarExclusao={() =>
+          void executar(() => (janela.tipo === "excluir" ? remover(janela.insumo.id) : Promise.resolve()))
+        }
+      />
     </div>
   );
 }

@@ -22,7 +22,9 @@ export interface ProdutoBruto {
   descricao: string | null;
   preco: string | number;
   imagem_url: string | null;
-  categoria: string;
+  // NULL é possível: o produto pode ficar sem categoria, e a vitrine agrupa
+  // esses produtos em "Outros" (ver lib/secoes).
+  categoria: string | null;
   ativo?: boolean;
   disponivel?: boolean;
   quantidade_disponivel?: number;
@@ -35,7 +37,7 @@ export interface Produto {
   descricao: string;
   preco: number;
   imagemUrl: string | null;
-  categoria: string;
+  categoria: string | null;
   ativo: boolean;
   disponivel?: boolean;
   quantidadeDisponivel?: number;
@@ -45,6 +47,22 @@ export interface Produto {
 export interface ItemCarrinho {
   produto: Produto;
   quantidade: number;
+}
+
+/**
+ * Estado do cardápio que a SecaoCardapio precisa para decidir o que mostrar.
+ * Vem como um objeto só (e não 6 props soltas) porque esses campos sempre
+ * andam juntos: quem carrega o hook entrega o bloco inteiro.
+ */
+export interface EstadoCardapio {
+  carregando: boolean;
+  atualizando: boolean;
+  erro: string | null;
+  falhaNaAtualizacao: string | null;
+  modoDemonstracao: boolean;
+  buscarNovamente: () => void;
+  atualizarCardapio: () => void;
+  usarDemonstracao: () => void;
 }
 
 /** Rótulo especial da pílula "mostrar tudo", fora das categorias reais. */

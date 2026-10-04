@@ -6,9 +6,8 @@ import { Entrar } from "./pages/Entrar";
 import { Resumo } from "./pages/Resumo";
 import { Pedidos } from "./pages/Pedidos";
 import { Insumos } from "./pages/Insumos";
-import { Perfil } from "./pages/Perfil";
 import { Produtos } from "./pages/Produtos";
-import { Categorias } from "./pages/Categorias";
+import { Registros } from "./pages/Registros";
 
 // Rotas do painel: /entrar (pública) e /painel/* (protegidas).
 // Próximas telas entram como filhas de EstruturaPainel:
@@ -25,8 +24,7 @@ export default function App(): JSX.Element {
               <Route path="/painel/pedidos" element={<Pedidos />} />
               <Route path="/painel/insumos" element={<Insumos />} />
               <Route path="/painel/produtos" element={<Produtos />} />
-              <Route path="/painel/categorias" element={<Categorias />} />
-              <Route path="/painel/perfil" element={<Perfil />} />
+              <Route path="/painel/registros" element={<Registros />} />
             </Route>
           </Route>
           <Route path="*" element={<Navigate to="/painel" replace />} />

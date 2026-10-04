@@ -30,3 +30,6 @@ export {
   atualizarCategoria,
   removerCategoria,
 } from "./api/produtos";
+export { listarRegistros } from "./api/registros";
+export { enviarImagem, validarArquivo } from "./api/uploads";
+export { urlPublica } from "./api/base";

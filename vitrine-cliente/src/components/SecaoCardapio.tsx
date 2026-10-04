@@ -1,17 +1,17 @@
-import type { Produto } from "../types";
+import type { EstadoCardapio, Produto } from "../types";
 import {
   agruparPorCategoria,
   identificadorSecao,
-  numeroSecao,
   separarDestaque,
-} from "../lib/secoes";import { useAvisosSacola } from "../hooks/useAvisosSacola";
+} from "../lib/secoes";
+import { useAvisosSacola } from "../hooks/useAvisosSacola";
 import { useSecaoVisivel } from "../hooks/useSecaoVisivel";
 import { TODAS_CATEGORIAS } from "../types";
 import { SecaoCategoria } from "./SecaoCategoria";
 import { CabecalhoCardapio } from "./CabecalhoCardapio";
-import { GrupoCategoria } from "./GrupoCategoria";
-import { CardDestaque } from "./CardDestaque";
+import { GradeCardapio } from "./GradeCardapio";
 import { EstadoVazio } from "./EstadoVazio";
+import { IlustracaoBuscaVazia } from "./IlustracaoBuscaVazia";
 import { EsqueletoCardapio } from "./EsqueletoCardapio";
 import { AlertaErro } from "./AlertaErro";
 
@@ -23,15 +23,11 @@ interface PropriedadesSecaoCardapio {
   produtos: Produto[];
   categorias: string[];
   buscaAtiva: boolean;
-  carregando: boolean;
-  erro: string | null;
-  modoDemonstracao: boolean;
+  estado: EstadoCardapio;
   quantidades: Record<number, number>;
   aoAdicionarVarios: (produtoId: number, quantidade: number) => void;
   aoMostrarAviso: (texto: string) => void;
   aoAlterarQuantidade: (produtoId: number, diferenca: number) => void;
-  aoTentarNovamente: () => void;
-  aoUsarDemonstracao: () => void;
   aoLimparBusca: () => void;
 }
 
@@ -39,24 +35,28 @@ export function SecaoCardapio({
   produtos,
   categorias,
   buscaAtiva,
-  carregando,
-  erro,
-  modoDemonstracao,
+  estado,
   quantidades,
   aoAdicionarVarios,
   aoMostrarAviso,
   aoAlterarQuantidade,
-  aoTentarNovamente,
-  aoUsarDemonstracao,
   aoLimparBusca,
 }: PropriedadesSecaoCardapio): JSX.Element {
+  const { carregando, atualizando, erro, modoDemonstracao } = estado;
   const secoes = agruparPorCategoria(produtos, categorias);
 
-  const { visivel, irPara } = useSecaoVisivel(
-    secoes.map((secao) => identificadorSecao(secao.categoria)),
-  );
-
   const { destaque, restantes } = separarDestaque(secoes, buscaAtiva);
+
+  // A pílula e o observador de rolagem olham para o que está REALMENTE na
+  // tela, e não para a lista bruta: o destaque sai da primeira categoria, e
+  // se ela tinha um único produto a seção inteira desaparecia do DOM. A
+  // pílula continuava oferecendo o nome dela e o clique não levava a lugar
+  // nenhum — o observador também ficava observando um id inexistente.
+  const renderizadas = restantes.filter((secao) => secao.itens.length > 0);
+
+  const { visivel, irPara } = useSecaoVisivel(
+    renderizadas.map((secao) => identificadorSecao(secao.categoria)),
+  );
   const { adicionarComAviso, alterarComAviso } = useAvisosSacola(
     produtos,
     quantidades,
@@ -76,21 +76,36 @@ export function SecaoCardapio({
   }
 
   // Pílula ativa = seção visível no scroll (ou "Tudo" no topo).
-  const nomesSecoes = secoes.map((secao) => secao.categoria);
+  const nomesSecoes = renderizadas.map((secao) => secao.categoria);
   const ativa =
     nomesSecoes.find((nome) => identificadorSecao(nome) === visivel) ??
     TODAS_CATEGORIAS;
 
+  // Sem busca o vazio é "a loja ainda não publicou nada", então a ação muda:
+  // não adianta limpar um termo que já está vazio.
+  const vazioPorBusca = buscaAtiva;
+
   return (
-    <main id="cardapio" className="mx-auto max-w-6xl scroll-mt-20 px-5 pt-8">
+    // `scroll-mt` também pela variável: o alvo de rolagem precisa parar abaixo
+    // da barra + pílula, senão o título da seção fica escondido atrás delas.
+    <main
+      id="cardapio"
+      className="mx-auto max-w-6xl px-5 pt-8"
+      style={{ scrollMarginTop: "calc(var(--altura-cabecalho, 67px) + 60px)" }}
+    >
       <CabecalhoCardapio
         totalExibido={produtos.length}
         carregando={carregando}
+        atualizando={atualizando}
         modoDemonstracao={modoDemonstracao}
+        aoAtualizar={estado.atualizarCardapio}
       />
 
       {/* Sticky: acompanha a rolagem para nunca perder o "onde estou". */}
-      <div className="sticky top-[67px] z-30 -mx-5 bg-creme/90 px-5 py-3 backdrop-blur-md">
+      <div
+        className="sticky z-30 -mx-5 bg-creme/90 px-5 py-3 backdrop-blur-md"
+        style={{ top: "var(--altura-cabecalho, 67px)" }}
+      >
         <SecaoCategoria
           categorias={nomesSecoes}
           ativa={ativa}
@@ -103,45 +118,33 @@ export function SecaoCardapio({
       ) : erro !== null ? (
         <AlertaErro
           mensagem={erro}
-          aoTentarNovamente={aoTentarNovamente}
-          aoUsarDemonstracao={aoUsarDemonstracao}
+          aoTentarNovamente={estado.buscarNovamente}
+          aoUsarDemonstracao={estado.usarDemonstracao}
         />
       ) : secoes.length === 0 ? (
         <EstadoVazio
-          emoji="🍰"
+          ilustracao={<IlustracaoBuscaVazia />}
           titulo="Nada por aqui… ainda."
-          mensagem="Tente outra busca."
-          textoAcao="Limpar busca"
-          aoAgir={aoLimparBusca}
+          mensagem={
+            vazioPorBusca
+              ? "Nenhum doce bate com essa busca. Tente outra palavra."
+              : "A confeitaria ainda não publicou nada. Volte em instantes."
+          }
+          textoAcao={vazioPorBusca ? "Limpar busca" : "Atualizar cardápio"}
+          aoAgir={vazioPorBusca ? aoLimparBusca : estado.atualizarCardapio}
+          // O spinner é da ação que está rodando: buscar o cardápio é rede e
+          // demora, limpar a busca é instantâneo. A condição estava
+          // invertida — girava no caso rápido e ficava parada no lento.
+          carregando={!vazioPorBusca && atualizando}
         />
       ) : (
-        <>
-          {destaque && (
-            <div className="mb-4 mt-6">
-              <CardDestaque
-                produto={destaque}
-                quantidadeNaSacola={quantidades[destaque.id] ?? 0}
-                aoAdicionar={adicionarComAviso}
-                aoAlterarQuantidade={alterarComAviso}
-              />
-            </div>
-          )}
-          {restantes.map((secao, indice) =>
-            secao.itens.length === 0 ? null : (
-              <GrupoCategoria
-                key={secao.categoria}
-                categoria={secao.categoria}
-                numero={numeroSecao(indice)}
-                itens={secao.itens}
-                quantidades={quantidades}
-                espacamentoTopo={indice === 0 && !destaque ? "mt-6" : "mt-12"}
-                identificador={identificadorSecao(secao.categoria)}
-                aoAdicionar={adicionarComAviso}
-                aoAlterarQuantidade={alterarComAviso}
-              />
-            ),
-          )}
-        </>
+        <GradeCardapio
+          destaque={destaque}
+          secoes={renderizadas}
+          quantidades={quantidades}
+          aoAdicionar={adicionarComAviso}
+          aoAlterarQuantidade={alterarComAviso}
+        />
       )}
     </main>
   );

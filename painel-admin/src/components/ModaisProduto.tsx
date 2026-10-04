@@ -1,23 +1,25 @@
-import type { Categoria, Insumo, ProdutoAdmin } from "../types";
+import type { Categoria, Insumo } from "../types";
 import type { DadosProduto } from "./ModalProduto";
+import type { Janela } from "../hooks/useJanelaProduto";
 import { ModalConfirmacao } from "./ModalConfirmacao";
 import { ModalProduto } from "./ModalProduto";
 
 // Modais da tela de produtos (formulário + excluir). Separados para a página
 // cuidar só de lista e ações, não de montar cada janela.
-export type JanelaProduto =
-  | { tipo: "fechada" }
-  | { tipo: "produto"; produto: ProdutoAdmin | null; ficha: DadosProduto["ficha"] }
-  | { tipo: "excluir"; produto: ProdutoAdmin };
+// O tipo da janela vem do hook que a controla. Ele vivia duplicado aqui e em
+// useJanelaProduto: como as duas uniões eram iguais, compilar escondia o
+// desacordo até um membro divergir — e o erro apareceria longe da causa.
+export type { Janela as JanelaProduto };
 
 interface PropriedadesModaisProduto {
-  janela: JanelaProduto;
+  janela: Janela;
   categorias: Categoria[];
   insumos: Insumo[];
   salvando: boolean;
   erroModal: string | null;
   aoFechar: () => void;
   aoSalvar: (dados: DadosProduto) => void;
+  aoEnviarImagem: (arquivo: File) => Promise<string>;
   aoConfirmarExcluir: () => void;
 }
 
@@ -29,6 +31,7 @@ export function ModaisProduto({
   erroModal,
   aoFechar,
   aoSalvar,
+  aoEnviarImagem,
   aoConfirmarExcluir,
 }: PropriedadesModaisProduto): JSX.Element | null {
   if (janela.tipo === "produto") {
@@ -43,6 +46,7 @@ export function ModaisProduto({
         erro={erroModal}
         aoFechar={aoFechar}
         aoSalvar={aoSalvar}
+        aoEnviarImagem={aoEnviarImagem}
       />
     );
   }

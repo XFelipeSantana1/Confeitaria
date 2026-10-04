@@ -2,8 +2,13 @@ import { useCallback, useEffect, useState } from "react";
 import type { Pedido } from "../types";
 import { ErroApi, definirPagamentoPedido, definirStatusPedido, listarPedidos } from "../lib/api";
 
-// Lista de pedidos com filtro por status. O filtro é client-side sobre a
-// lista cheia (as abas mostram contagens, então tudo vem de uma vez).
+// Lista de pedidos com filtro por status.
+//
+// O hook guarda a lista INTEIRA e deriva a aba visível. Antes ele guardava só
+// a aba filtrada, e aí duas coisas davam errado: trocar de aba refazia a
+// requisição (o filtro é do cliente, não precisa) e, pior, um pedido que saía
+// da aba continuava aparecendo nela com o status novo — a linha só sumia
+// quando a pessoa mudava de aba por acaso.
 export function usePedidos(token: string | null): {
   pedidos: Pedido[];
   filtro: string;
@@ -15,7 +20,7 @@ export function usePedidos(token: string | null): {
   mudarStatus: (id: number, status: string) => Promise<void>;
   mudarPagamento: (id: number, status: string) => Promise<void>;
 } {
-  const [pedidos, definirPedidos] = useState<Pedido[]>([]);
+  const [todos, definirTodos] = useState<Pedido[]>([]);
   const [filtro, definirFiltro] = useState("todos");
   const [carregando, definirCarregando] = useState(true);
   const [erro, definirErro] = useState<string | null>(null);
@@ -28,11 +33,11 @@ export function usePedidos(token: string | null): {
     }
     definirCarregando(true);
     definirErro(null);
+    // Zera a partir de cada busca: sem isso, um 401 isolado deixaria a tela
+    // presa no "sair" mesmo depois de a sessão voltar.
+    definirPrecisaLogin(false);
     try {
-      const todos = await listarPedidos(token);
-      // Filtro client-side sobre a lista (a API também aceita ?status=, mas
-      // contar as abas "todos" precisa da lista cheia de qualquer jeito).
-      definirPedidos(filtro === "todos" ? todos : todos.filter((p) => p.status === filtro));
+      definirTodos(await listarPedidos(token));
     } catch (falha) {
       if (falha instanceof ErroApi && falha.codigo === 401) {
         definirPrecisaLogin(true);
@@ -42,29 +47,29 @@ export function usePedidos(token: string | null): {
     } finally {
       definirCarregando(false);
     }
-  }, [token, filtro]);
+  }, [token]);
 
   useEffect(() => {
     buscar();
   }, [buscar]);
 
-  // Atualiza a linha local após o PATCH (evita refetch da lista inteira).
+  // Recarrega em vez de remendar a linha: cancelar um pedido pago também
+  // estorna o pagamento, e um update local deixaria a linha mostrando "a
+  // receber" para um pedido cancelado.
   async function mudarStatus(id: number, status: string): Promise<void> {
     if (!token) return;
     await definirStatusPedido(token, id, status);
-    definirPedidos((atual) => atual.map((p) => (p.id === id ? { ...p, status } : p)));
+    await buscar();
   }
 
   async function mudarPagamento(id: number, status: string): Promise<void> {
     if (!token) return;
     await definirPagamentoPedido(token, id, status);
-    definirPedidos((atual) =>
-      atual.map((p) => (p.id === id ? { ...p, status_pagamento: status } : p)),
-    );
+    await buscar();
   }
 
   return {
-    pedidos,
+    pedidos: filtro === "todos" ? todos : todos.filter((p) => p.status === filtro),
     filtro,
     definirFiltro,
     carregando,
