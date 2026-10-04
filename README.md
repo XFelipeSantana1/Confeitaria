@@ -64,6 +64,10 @@ Dois guards de erro de propósito, para não virar surpresa:
 
 Detalhes de cada um nos READMEs próprios.
 
+`praticando-backend/` é um exercício: o mesmo backend reescrito do zero para
+aprender, em outro banco (`confeitaria_estudo`) e outra porta (`3001`). Ele
+não é o backend do projeto — o que roda é `backend/`.
+
 ## O que o sistema garante
 
 **Furo de estoque é impossível.** A baixa de insumo roda dentro da mesma
@@ -104,7 +108,8 @@ de cliente pelo painel (o cliente entra pelo WhatsApp) e app nativo.
 
 ```
 .
-├── backend/          API Express + MySQL
+├── backend/          API Express + MySQL (o que roda)
+├── praticando-backend/  mesmo backend reescrito do zero, como estudo
 ├── vitrine-cliente/  vitrine pública (React + Vite)
 ├── painel-admin/     painel do gestor (React + Vite)
 ├── marca/            logo, símbolo e favicons da marca
