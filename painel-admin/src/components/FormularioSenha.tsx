@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from "react";
-import { KeyRound } from "lucide-react";
+import { Eye, EyeOff, KeyRound } from "lucide-react";
 import { useAutenticacao } from "../hooks/useAutenticacao";
 import { ErroApi, atualizarPerfil } from "../lib/api";
 import { Botao } from "./ui/Botao";
@@ -25,6 +25,11 @@ export function FormularioSenha({
   const { sessao } = useAutenticacao();
   const [senhas, definirSenhas] = useState({ atual: "", nova: "" });
   const [salvando, definirSalvando] = useState(false);
+  // Mostrar a senha é um recurso de acessibilidade, não de depuração: com
+  // `type="password"` fixo, quem tem dificuldade de ler os caracteresDigitados
+  // (PONV não é erro comum) não consegue conferir o que escreveu antes de
+  // enviar — e descobrir o erro só depois da troca é tarde.
+  const [visivel, definirVisivel] = useState(false);
 
   async function enviar(evento: FormEvent): Promise<void> {
     evento.preventDefault();
@@ -38,6 +43,8 @@ export function FormularioSenha({
       // Limpa os campos: a senha antiga não pode ficar escrita no formulário
       // depois de trocar, e o vazio avisa que foi preciso.
       definirSenhas({ atual: "", nova: "" });
+      // Volta a esconder: a senha nova já foi salva e não precisa ficar à vista.
+      definirVisivel(false);
       aoAvisar("Senha trocada.");
     } catch (falha) {
       aoErro(falha instanceof ErroApi ? falha.message : "Não foi possível trocar a senha.");
@@ -54,15 +61,26 @@ export function FormularioSenha({
       <Entrada
         id="perfil-atual"
         rotulo="Senha atual"
-        type="password"
+        type={visivel ? "text" : "password"}
         value={senhas.atual}
         onChange={(evento) => definirSenhas({ ...senhas, atual: evento.target.value })}
         autoComplete="current-password"
       />
+      <div className="flex justify-end">
+        <button
+          type="button"
+          onClick={() => definirVisivel((v) => !v)}
+          aria-pressed={visivel}
+          className="inline-flex items-center gap-1.5 text-xs font-bold text-carameloForte transition-colors hover:text-carameloEscuro"
+        >
+          {visivel ? <EyeOff size={15} aria-hidden="true" /> : <Eye size={15} aria-hidden="true" />}
+          {visivel ? "Esconder" : "Mostrar"} a senha
+        </button>
+      </div>
       <Entrada
         id="perfil-nova"
         rotulo="Nova senha (mín. 6)"
-        type="password"
+        type={visivel ? "text" : "password"}
         value={senhas.nova}
         onChange={(evento) => definirSenhas({ ...senhas, nova: evento.target.value })}
         autoComplete="new-password"

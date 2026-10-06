@@ -14,11 +14,18 @@ export interface ItemMenu {
   rota: string;
   rotulo: string;
   icone: LucideIcon;
+  /**
+   * Mostra a contagem de pedidos esperando ação. Só em "Pedidos": os outros
+   * itens não têm fila, e um número que não pede ação nenhuma vira decoração.
+   * O valor vem do hook `usePedidosPendentes`, então `null` = ainda buscando
+   * (não se desenha nada) e `0` = não há pendente (também não se desenha).
+   */
+  contagem?: number | null;
 }
 
 export const ITENS_MENU: ItemMenu[] = [
   { rota: "/painel", rotulo: "Resumo", icone: LayoutDashboard },
-  { rota: "/painel/pedidos", rotulo: "Pedidos", icone: ClipboardList },
+  { rota: "/painel/pedidos", rotulo: "Pedidos", icone: ClipboardList, contagem: null },
   { rota: "/painel/insumos", rotulo: "Insumos", icone: Wheat },
   { rota: "/painel/produtos", rotulo: "Produtos", icone: CakeSlice },
   { rota: "/painel/registros", rotulo: "Histórico", icone: History },

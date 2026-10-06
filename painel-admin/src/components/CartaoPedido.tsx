@@ -1,5 +1,6 @@
 import { ArrowRight } from "lucide-react";
 import { formatarMoeda } from "../lib/formatarMoeda";
+import { formatarQuando } from "../lib/formatarData";
 import { rotuloStatus, tomStatus } from "../lib/pedido";
 import type { Pedido } from "../types";
 
@@ -38,6 +39,9 @@ export function CartaoPedido({ pedido, aoAbrir }: PropriedadesCartaoPedido): JSX
         <span className="mt-2 flex items-center justify-between">
           <span className="font-numero font-extrabold text-carameloForte">
             {formatarMoeda(pedido.valor_total)}
+            <span className="block text-xs font-normal text-textoSuave">
+              {formatarQuando(pedido.criado_em)}
+            </span>
           </span>
           {/* Seta discreta: diz que o card abre algo, sem precisar de texto. */}
           <ArrowRight size={15} className="text-textoSuave" aria-hidden="true" />

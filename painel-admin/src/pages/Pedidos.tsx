@@ -1,7 +1,7 @@
 import { Inbox, RotateCcw, Wrench } from "lucide-react";
 import { useAutenticacao } from "../hooks/useAutenticacao";
 import { usePedidos } from "../hooks/usePedidos";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { rotuloStatus } from "../lib/pedido";
 import { STATUS_PEDIDO } from "../types";
 import { Cartao } from "../components/ui/Cartao";
@@ -20,6 +20,7 @@ export function Pedidos(): JSX.Element {
   const { sessao, sair } = useAutenticacao();
   const {
     pedidos,
+    todos,
     filtro,
     definirFiltro,
     carregando,
@@ -30,6 +31,17 @@ export function Pedidos(): JSX.Element {
     mudarPagamento,
   } = usePedidos(sessao?.token ?? null);
   const [abertoId, definirAbertoId] = useState<number | null>(null);
+
+  // Contagem por status, contada na lista inteira e não na aba visível: a
+  // aba "Pendente" precisa mostrar quantos pendentes existem, e a lista
+  // filtrada mostraria zero para todas as outras.
+  const contagens = useMemo(() => {
+    const mapa = new Map<string, number>();
+    for (const pedido of todos) {
+      mapa.set(pedido.status, (mapa.get(pedido.status) ?? 0) + 1);
+    }
+    return mapa;
+  }, [todos]);
 
   // Efeito, e não `if` no corpo do render: `sair()` atualiza o estado do
   // provedor de sessão, e mexer no estado de outro componente durante o
@@ -62,6 +74,15 @@ export function Pedidos(): JSX.Element {
             }`}
           >
             {aba === "todos" ? "Todos" : rotuloStatus(aba)}
+            {/* A contagem é o que dá à aba a utilidade de alerta: sem ela,
+                o gestor precisa abrir cada uma para saber onde há trabalho. */}
+            <span
+              className={`ml-1.5 font-numero text-xs tabular-nums ${
+                filtro === aba ? "text-creme/70" : "text-textoSuave"
+              }`}
+            >
+              {aba === "todos" ? todos.length : (contagens.get(aba) ?? 0)}
+            </span>
           </button>
         ))}
       </div>

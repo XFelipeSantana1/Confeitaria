@@ -27,6 +27,13 @@ export interface Pedido {
   status_pagamento: string;
   valor_total: number;
   origem: string;
+  /**
+   * ISO com Z explícito, como o de `Registro.criado_em`: o MySQL manda hora
+   * local em "YYYY-MM-DD HH:MM:SS", que o navegador entenderia como horário
+   * local também — e a conta de "hoje" sairia errada para quem estiver em
+   * outro fuso. Ver a normalização em lib/api/pedidos.ts.
+   */
+  criado_em: string;
 }
 
 /** Insumo como o GET /api/insumos entrega (completo, com custo). */

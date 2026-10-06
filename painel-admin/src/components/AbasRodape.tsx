@@ -1,5 +1,6 @@
 import { NavLink } from "react-router-dom";
 import { ITENS_MENU } from "../lib/menu";
+import { ContadorSobreposto } from "./ContadorMenu";
 
 // Todas as telas do menu, fixas no rodapé do celular — hoje são cinco, que é
 // o número que cabe com alvo de toque confortável (7 abas em 360px davam
@@ -9,7 +10,7 @@ import { ITENS_MENU } from "../lib/menu";
 // o perfil; o rodapé é o atalho do que se usa todo dia.
 const ABAS_PRINCIPais = ITENS_MENU;
 
-export function AbasRodape(): JSX.Element {
+export function AbasRodape({ pendentes }: { pendentes: number | null }): JSX.Element {
   return (
     <nav
       aria-label="Atalhos"
@@ -29,7 +30,15 @@ export function AbasRodape(): JSX.Element {
                 }`
               }
             >
-              <Icone size={20} />
+              <span className="relative">
+                <Icone size={20} />
+                {/* O selo vai absoluto sobre o ícone: colocar na linha
+                    empurraria o rótulo e o alvo de toque ficaria fora dos
+                    72px que cabem em 360px. */}
+                {item.contagem === undefined ? null : (
+                  <ContadorSobreposto valor={pendentes} />
+                )}
+              </span>
               {item.rotulo}
             </NavLink>
           );

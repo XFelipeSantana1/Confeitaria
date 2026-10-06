@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Plus, RotateCcw, Wheat, Wrench } from "lucide-react";
 import { useAutenticacao } from "../hooks/useAutenticacao";
 import { useInsumos } from "../hooks/useInsumos";
@@ -8,6 +8,7 @@ import { Cartao } from "../components/ui/Cartao";
 import { EsqueletoTabela } from "../components/ui/EsqueletoTabela";
 import { Botao } from "../components/ui/Botao";
 import { DiscoVazio } from "../components/ui/DiscoVazio";
+import { BuscaComContagem } from "../components/BuscaComContagem";
 import { CabecalhoSecao } from "../components/CabecalhoSecao";
 import { TabelaInsumos } from "../components/TabelaInsumos";
 import { ModaisInsumo, type JanelaInsumo } from "../components/ModaisInsumo";
@@ -41,6 +42,18 @@ export function Insumos(): JSX.Element {
     if (precisaLogin) sair();
   }, [precisaLogin, sair]);
 
+
+  // Busca só no cliente: a lista de insumos é pequena e já está em memória, e
+  // chamar a API a cada tecla deixaria a tela piscando. O filtro também ignora
+  // maiúsculas e acentos, porque nobody digita "acucar" procurando "Açúcar".
+  const [termo, definirTermo] = useState("");
+  const insumosVisiveis = useMemo(() => {
+    const alvo = termo.trim().toLowerCase();
+    if (alvo === "") return insumos;
+    const semAcento = (texto: string) =>
+      texto.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    return insumos.filter((insumo) => semAcento(insumo.nome).toLowerCase().includes(alvo));
+  }, [insumos, termo]);
 
   async function executar(acao: () => Promise<unknown>): Promise<void> {
     definirSalvando(true);
@@ -76,6 +89,15 @@ export function Insumos(): JSX.Element {
         }
       />
 
+      <BuscaComContagem
+        valor={termo}
+        aoMudar={definirTermo}
+        placeholder="Buscar insumo pelo nome…"
+        rotulo="Buscar insumo pelo nome"
+        encontrados={insumosVisiveis.length}
+        total={insumos.length}
+      />
+
       {carregando ? (
         <EsqueletoTabela linhas={4} />
       ) : erro ? (
@@ -101,7 +123,7 @@ export function Insumos(): JSX.Element {
         </Cartao>
       ) : (
         <TabelaInsumos
-          insumos={insumos}
+          insumos={insumosVisiveis}
           aoMovimentar={(insumo) => abrir("movimentar", insumo)}
           aoEditar={(insumo) => abrir("insumo", insumo)}
           aoExcluir={(insumo) => abrir("excluir", insumo)}

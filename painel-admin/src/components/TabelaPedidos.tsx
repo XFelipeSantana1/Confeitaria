@@ -1,4 +1,5 @@
 import { formatarMoeda } from "../lib/formatarMoeda";
+import { formatarQuando } from "../lib/formatarData";
 import { rotuloStatus, tomStatus } from "../lib/pedido";
 import type { Pedido } from "../types";
 import { Cartao } from "./ui/Cartao";
@@ -38,8 +39,16 @@ export function TabelaPedidos({ pedidos, aoAbrir }: PropriedadesTabelaPedidos): 
                 {pedido.cliente_nome ?? "Cliente"}
                 <span className="block text-xs text-textoSuave">{pedido.whatsapp}</span>
               </td>
-              <td className="px-4 py-3 font-bold text-carameloForte">
-                {formatarMoeda(pedido.valor_total)}
+              <td className="px-4 py-3">
+                <span className="block font-bold text-carameloForte">
+                  {formatarMoeda(pedido.valor_total)}
+                </span>
+                {/* A hora vai junto do valor: é a informação que responde
+                    "isso é de hoje?". Sem o card de celular esconderia esse
+                    dado por completo. */}
+                <span className="block text-xs text-textoSuave">
+                  {formatarQuando(pedido.criado_em)}
+                </span>
               </td>
               <td className="px-4 py-3">
                 <span

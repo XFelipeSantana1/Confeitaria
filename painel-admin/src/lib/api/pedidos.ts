@@ -17,7 +17,20 @@ export async function listarPedidos(token: string): Promise<Pedido[]> {
     status_pagamento: String(pedido.status_pagamento ?? ""),
     valor_total: Number(pedido.valor_total) || 0,
     origem: String(pedido.origem ?? ""),
+    criado_em: paraIso(pedido.criado_em),
   }));
+}
+
+/**
+ * "2026-10-05 14:32:00" → "2026-10-05T14:32:00Z".
+ *
+ * O `Z` é o que segura a conta de "hoje" e o agrupamento por dia. Sem ele, o
+ * navegador interpreta a string como horário LOCAL (que é o que o MySQL
+ * mandou) e o dia vira o dia de quem está olhando, não o dia em que o pedido
+ * foi feito.
+ */
+function paraIso(valor: unknown): string {
+  return String(valor ?? "").replace(" ", "T") + "Z";
 }
 
 /**
@@ -43,6 +56,7 @@ export async function obterPedido(
     status_pagamento: String(dados.status_pagamento ?? ""),
     valor_total: Number(dados.valor_total) || 0,
     origem: String(dados.origem ?? ""),
+    criado_em: paraIso(dados.criado_em),
     itens: brutos.map((item) => ({
       id: Number(item.id),
       produto_id: Number(item.produto_id),

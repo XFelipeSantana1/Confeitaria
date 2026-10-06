@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { Outlet } from "react-router-dom";
+import { useAutenticacao } from "../hooks/useAutenticacao";
+import { usePedidosPendentes } from "../hooks/usePedidosPendentes";
 import { BarraLateral } from "./BarraLateral";
 import { MenuMobile } from "./MenuMobile";
 import { AbasRodape } from "./AbasRodape";
@@ -12,14 +14,19 @@ import { SimboloClaro } from "./Marca";
 // da gaveta — dois irmão diferentes. Subir o estado para a moldura evita
 // context novo só para um booleano.
 export function EstruturaPainel(): JSX.Element {
+  const { sessao } = useAutenticacao();
   const [perfilAberto, definirPerfilAberto] = useState(false);
+  // Uma consulta só para os três lugares que mostram o número (sidebar,
+  // gaveta e rodapé). Buscar dentro de cada um faria a mesma requisição três
+  // vezes em toda tela.
+  const pendentes = usePedidosPendentes(sessao?.token ?? null);
 
   return (
     <div className="flex min-h-screen bg-creme font-corpo">
-      <BarraLateral aoAbrirPerfil={() => definirPerfilAberto(true)} />
+      <BarraLateral aoAbrirPerfil={() => definirPerfilAberto(true)} pendentes={pendentes} />
       <div className="flex min-w-0 flex-1 flex-col">
         <header className="sticky top-0 z-40 flex items-center gap-2.5 border-b border-borda bg-creme/90 px-4 py-3 backdrop-blur-md md:hidden">
-          <MenuMobile aoAbrirPerfil={() => definirPerfilAberto(true)} />
+          <MenuMobile aoAbrirPerfil={() => definirPerfilAberto(true)} pendentes={pendentes} />
           {/* Claro, como na sidebar: sobre fundo tinta a versão escura dá
               1,00:1 e o desenho desaparece. */}
           <span className="grid h-9 w-9 flex-none place-items-center rounded-xl bg-tinta">
@@ -33,7 +40,7 @@ export function EstruturaPainel(): JSX.Element {
         <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-5 pb-[4.5rem] sm:px-5 md:px-5 md:py-6 md:pb-6">
           <Outlet />
         </main>
-        <AbasRodape />
+        <AbasRodape pendentes={pendentes} />
       </div>
       {perfilAberto ? <JanelaPerfil aoFechar={() => definirPerfilAberto(false)} /> : null}
     </div>

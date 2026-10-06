@@ -6,6 +6,7 @@ import { useAutenticacao } from "../hooks/useAutenticacao";
 import { ITENS_MENU } from "../lib/menu";
 import { SimboloClaro } from "./Marca";
 import { Avatar } from "./Avatar";
+import { ContadorMenu } from "./ContadorMenu";
 
 // Navegação do celular: gaveta que abre pelo botão do cabeçalho.
 //
@@ -13,7 +14,12 @@ import { Avatar } from "./Avatar";
 // ocupam 72px de cada lado em 360px. Com mais telas os alvos caiam para 40px
 // (abaixo do mínimo confortável de toque) e os rótulos viravam duas letras.
 // A gaveta dá a lista inteira por extenso, e some depois que o gestor escolhe.
-export function MenuMobile({ aoAbrirPerfil }: { aoAbrirPerfil: () => void }): JSX.Element {
+interface PropriedadesMenuMobile {
+  aoAbrirPerfil: () => void;
+  pendentes: number | null;
+}
+
+export function MenuMobile({ aoAbrirPerfil, pendentes }: PropriedadesMenuMobile): JSX.Element {
   const { sessao, sair } = useAutenticacao();
   const [aberto, definirAberto] = useState(false);
 
@@ -91,7 +97,9 @@ export function MenuMobile({ aoAbrirPerfil }: { aoAbrirPerfil: () => void }): JS
                       }`
                     }
                   >
-                    <Icone size={18} /> {item.rotulo}
+                    <Icone size={18} />
+                    <span className="min-w-0 flex-1 truncate">{item.rotulo}</span>
+                    <ContadorMenu valor={item.contagem === undefined ? null : pendentes} />
                   </NavLink>
                 );
               })}

@@ -21,12 +21,14 @@ na raiz). Primeiro acesso: crie o admin via `POST /api/auth/registrar`
 - `/entrar` — login (pública)
 - `/painel` — Resumo: métricas (pendentes, em preparo, a receber, estoque
   baixo) + mais pedidos + estoque baixo + últimos pedidos
-- `/painel/pedidos` — lista com abas por status + drawer de detalhe
-  (avançar status, cancelar com estorno, marcar pagamento)
-- `/painel/insumos` — CRUD + registrar entrada/perda/ajuste de estoque
-- `/painel/produtos` — CRUD + liga/desliga na vitrine + ficha técnica
-  + painel lateral de categorias (criar, renomear, remover e **filtrar** a
-  tabela por categoria)
+- `/painel/pedidos` — lista com abas por status **e contagem em cada aba** +
+  busca não (não precisa, são poucos) + drawer de detalhe (avançar status,
+  cancelar com estorno, marcar pagamento)
+- `/painel/insumos` — CRUD + busca por nome + registrar entrada/perda/ajuste
+  de estoque
+- `/painel/produtos` — CRUD + busca por nome + liga/desliga na vitrine + ficha
+  técnica + painel lateral de categorias (criar, renomear, remover e
+  **filtrar** a tabela por categoria)
 - `/painel/registros` — trilha de auditoria, com o diff antes/depois
 
 Duas telas não existem mais, e foram de propósito:
@@ -45,12 +47,16 @@ da gaveta — que é onde se procura quando se quer trocar a senha.
   `Insumo`, `ProdutoAdmin`, `ItemFicha`, `Categoria`, `ProdutoVendido`,
   `Registro`
 - `lib/` — `api/` (uma pasta por assunto, `base.ts` com fetch + `ErroApi`),
+  `periodo.ts` (filtro e agrupamento por dia), `formatarData.ts`,
   `sessao.ts`, `formatarMoeda.ts`, `menu.ts` (navegação), `pedido.ts`
   (rótulos/tons/fluxo de status), `aparenciaRegistro.ts`
 - `hooks/` — `useAutenticacao` (contexto), `useResumo`, `usePedidos`,
   `useInsumos`, `useProdutos` (dona também das categorias), `useRegistros`,
-  `useJanelaProduto`, `useUploadImagem`
-- `components/` — `BarraLateral`, `EstruturaPainel`, `MenuMobile`,
+  `useJanelaProduto`, `useUploadImagem`, `usePedidosPendentes`
+- `components/` — `AlertaAcao`, `Busca`, `BuscaComContagem`, `ContadorMenu`,
+  `EstadosProdutos`, `GraficoVendas`, `PainelDeProduto`, `PainelCategorias`,
+  `JanelaPerfil`, `FormularioSenha`, `Avatar`, `Marca`,
+  `BarraLateral`, `EstruturaPainel`, `MenuMobile`,
   `AbasRodape`, `RotaProtegida`, `CabecalhoSecao`, `CartaoMetrica`,
   `ListaMaisVendidos`, `ListaBaixoEstoque`, `UltimosPedidos`, `TabelaInsumos`,
   `TabelaProdutos`, `CartaoProduto`, `DrawerPedido`, `ItensPedido`,
@@ -74,3 +80,6 @@ Duas regras que valem para qualquer tela nova:
 - **Toda escrita mostra o resultado.** Um `void funcao()` sem tratamento
   some com a falha de rede: o selo muda e a informação não. Toda ação que
   escreve precisa de `try/catch` e de um lugar visível para o erro.
+- **Contador de pendente em três lugares vem de uma consulta só.** A barra
+  lateral, a gaveta e o rodapé do celular leem o mesmo hook; buscar dentro de
+  cada um faria a mesma requisição três vezes em toda tela.

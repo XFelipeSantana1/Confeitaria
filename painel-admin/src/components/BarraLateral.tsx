@@ -4,13 +4,19 @@ import { useAutenticacao } from "../hooks/useAutenticacao";
 import { ITENS_MENU } from "../lib/menu";
 import { SimboloClaro } from "./Marca";
 import { Avatar } from "./Avatar";
+import { ContadorMenu } from "./ContadorMenu";
 
 // Barra fixa do desktop (w-60) e rodapé de abas no celular.
 //
 // No celular a barra some e quem manda é o MenuMobile. Os dois leem a MESMA
 // lista em lib/menu — antes cada um tinha a sua, e o rodapé do celular ficou
 // sem nenhum item.
-export function BarraLateral({ aoAbrirPerfil }: { aoAbrirPerfil: () => void }): JSX.Element {
+interface PropriedadesBarraLateral {
+  aoAbrirPerfil: () => void;
+  pendentes: number | null;
+}
+
+export function BarraLateral({ aoAbrirPerfil, pendentes }: PropriedadesBarraLateral): JSX.Element {
   const { sessao, sair } = useAutenticacao();
   return (
     <aside className="hidden w-60 flex-none flex-col gap-1 bg-gradient-to-b from-tinta via-[#3d2517] to-tinta p-4 text-creme shadow-[4px_0_24px_rgba(43,30,23,0.25)] md:flex">
@@ -36,7 +42,9 @@ export function BarraLateral({ aoAbrirPerfil }: { aoAbrirPerfil: () => void }): 
               }`
             }
           >
-            <Icone size={18} /> {item.rotulo}
+            <Icone size={18} />
+            <span className="min-w-0 flex-1 truncate">{item.rotulo}</span>
+            <ContadorMenu valor={item.contagem === undefined ? null : pendentes} />
           </NavLink>
         );
       })}

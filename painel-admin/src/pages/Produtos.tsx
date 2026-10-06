@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { CakeSlice, Plus, RotateCcw, Tag, Wrench, X } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { Plus, RotateCcw, Tag, Wrench, X } from "lucide-react";
 import { useAutenticacao } from "../hooks/useAutenticacao";
 import { useProdutos } from "../hooks/useProdutos";
 import { useJanelaProduto } from "../hooks/useJanelaProduto";
@@ -9,11 +9,13 @@ import type { Categoria, ProdutoAdmin } from "../types";
 import { Cartao } from "../components/ui/Cartao";
 import { EsqueletoTabela } from "../components/ui/EsqueletoTabela";
 import { Botao } from "../components/ui/Botao";
-import { DiscoVazio } from "../components/ui/DiscoVazio";
+import { AlertaAcao } from "../components/AlertaAcao";
+import { BuscaComContagem } from "../components/BuscaComContagem";
 import { CabecalhoSecao } from "../components/CabecalhoSecao";
 import { TabelaProdutos } from "../components/TabelaProdutos";
-import { ModaisProduto } from "../components/ModaisProduto";
-import { PainelCategorias, type FiltroCategoria } from "../components/PainelCategorias";
+import { type FiltroCategoria } from "../components/PainelCategorias";
+import { PainelDeProduto } from "../components/PainelDeProduto";
+import { EstadosProdutos } from "../components/EstadosProdutos";
 import type { DadosProduto } from "../components/ModalProduto";
 
 // Produtos (/painel/produtos): tabela com liga/desliga da vitrine, modal com
@@ -66,12 +68,25 @@ export function Produtos(): JSX.Element {
   }, [precisaLogin, sair]);
 
 
-  const visiveis =
+  const [termo, definirTermo] = useState("");
+
+  // Categoria E texto, nesta ordem: primeiro o que a pessoa escolheu na lista,
+  // depois o que ela digitou. Se o texto não bate com a categoria escolhida, a
+  // lista fica vazia — e o contador abaixo diz por quê.
+  const porCategoria =
     filtro === "todas"
       ? produtos
       : filtro === "sem"
         ? produtos.filter((produto) => produto.categoria_id === null)
         : produtos.filter((produto) => produto.categoria_id === filtro);
+
+  const visiveis = useMemo(() => {
+    const alvo = termo.trim().toLowerCase();
+    if (alvo === "") return porCategoria;
+    const semAcento = (texto: string) =>
+      texto.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    return porCategoria.filter((produto) => semAcento(produto.nome).toLowerCase().includes(alvo));
+  }, [porCategoria, termo]);
 
   // Nome da categoria em foco, para o botão de sair do filtro. Busca pelo id
   // porque o filtro guarda o número, não a linha — que pode ter sido renomeada
@@ -132,17 +147,18 @@ export function Produtos(): JSX.Element {
         }
       />
 
-      {erroAlternar ? (
-        <p role="alert" className="rounded-2xl bg-rose-50 px-4 py-2.5 text-sm font-semibold text-rose-700">
-          {erroAlternar}
-        </p>
-      ) : null}
+      <BuscaComContagem
+        valor={termo}
+        aoMudar={definirTermo}
+        placeholder="Buscar doce pelo nome…"
+        rotulo="Buscar produto pelo nome"
+        encontrados={visiveis.length}
+        total={porCategoria.length}
+      />
 
-      {janela.aviso ? (
-        <p role="alert" className="rounded-2xl bg-rose-50 px-4 py-2.5 text-sm font-semibold text-rose-700">
-          {janela.aviso}
-        </p>
-      ) : null}
+      {/* Dois erros podem coexistir (a troca de visibilidade e a janela), e
+          quem está em cima é o mais recente. */}
+      <AlertaAcao texto={erroAlternar ?? janela.aviso} />
 
       {filtro !== "todas" ? (
         <div className="flex items-center gap-2">
@@ -171,26 +187,16 @@ export function Produtos(): JSX.Element {
             </Botao>
           </div>
         </Cartao>
-      ) : produtos.length === 0 ? (
-        <Cartao className="py-12 text-center">
-          <DiscoVazio>
-            <CakeSlice size={26} />
-          </DiscoVazio>
-          <b className="mt-2 block font-display text-xl text-tinta">Nenhum produto cadastrado</b>
-          <p className="mt-1 text-sm text-textoSuave">Cadastre o primeiro doce para encher a vitrine.</p>
-        </Cartao>
       ) : visiveis.length === 0 ? (
-        <Cartao className="py-10 text-center">
-          <DiscoVazio>
-            <Tag size={26} />
-          </DiscoVazio>
-          <b className="mt-2 block font-display text-lg text-tinta">Nada nesta categoria</b>
-          <p className="mt-1 text-sm text-textoSuave">
-            {filtro === "sem"
-              ? "Todos os produtos estão classificados."
-              : "Nenhum produto usa essa categoria ainda."}
-          </p>
-        </Cartao>
+        <EstadosProdutos
+          situacao={
+            produtos.length === 0
+              ? { tipo: "sem-produtos" }
+              : termo.trim() !== ""
+                ? { tipo: "sem-resultado", busca: termo.trim(), categoria: filtro }
+                : { tipo: "sem-categoria", filtro }
+          }
+        />
       ) : (
         <TabelaProdutos
           produtos={visiveis}
@@ -201,30 +207,25 @@ export function Produtos(): JSX.Element {
         />
       )}
 
-      <ModaisProduto
+      <PainelDeProduto
         janela={janela.janela}
         categorias={categorias}
         insumos={insumos}
+        produtos={produtos}
+        filtro={filtro}
+        painelAberto={painelAberto}
         salvando={janela.abrindo}
         erroModal={janela.erro}
-        aoFechar={janela.fechar}
+        aoFecharJanela={janela.fechar}
         aoSalvar={(dados: DadosProduto) => void janela.salvarProduto(dados)}
         aoEnviarImagem={enviarFoto}
         aoConfirmarExcluir={() => void janela.confirmarExclusao()}
+        aoFiltrar={filtrar}
+        aoFecharCategorias={() => definirPainelAberto(false)}
+        aoCriarCategoria={criarCategoria}
+        aoRenomearCategoria={atualizarCategoria}
+        aoRemoverCategoria={removerCategoriaVisivel}
       />
-
-      {painelAberto ? (
-        <PainelCategorias
-          categorias={categorias}
-          produtos={produtos}
-          filtro={filtro}
-          aoFiltrar={filtrar}
-          aoFechar={() => definirPainelAberto(false)}
-          aoCriar={criarCategoria}
-          aoRenomear={atualizarCategoria}
-          aoRemover={removerCategoriaVisivel}
-        />
-      ) : null}
     </div>
   );
 }

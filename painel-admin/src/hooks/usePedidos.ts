@@ -11,6 +11,8 @@ import { ErroApi, definirPagamentoPedido, definirStatusPedido, listarPedidos } f
 // quando a pessoa mudava de aba por acaso.
 export function usePedidos(token: string | null): {
   pedidos: Pedido[];
+  /** A lista sem filtro: é o que alimenta as contagens das abas. */
+  todos: Pedido[];
   filtro: string;
   definirFiltro: (filtro: string) => void;
   carregando: boolean;
@@ -70,6 +72,7 @@ export function usePedidos(token: string | null): {
 
   return {
     pedidos: filtro === "todos" ? todos : todos.filter((p) => p.status === filtro),
+    todos,
     filtro,
     definirFiltro,
     carregando,
