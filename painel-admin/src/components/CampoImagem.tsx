@@ -94,8 +94,17 @@ export function CampoImagem({
       >
         <div
           style={{ aspectRatio: String(proporcao) }}
-          className={`relative w-full flex-none overflow-hidden bg-areia/50 ${
-            circular ? "h-20 w-20 rounded-full border border-borda" : "rounded-2xl border border-borda sm:w-44"
+          // O `w-full` fica só no ramo do card. Com ele aqui na base, a caixa
+          // do avatar ficava com a largura inteira da janela em vez dos 80px do
+          // `w-20`: as duas classes disputam a mesma propriedade com a mesma
+          // especificidade, e o Tailwind escreve `w-full` DEPOIS de `w-20` no
+          // CSS, então quem vencia era sempre o `w-full` — independente da
+          // ordem no class. Com `aspectRatio: 1` em linha, a altura acompanhava
+          // essa largura e o preview virava um quadrado do tamanho da janela.
+          className={`relative flex-none overflow-hidden bg-areia/50 ${
+            circular
+              ? "h-20 w-20 rounded-full border border-borda"
+              : "w-full rounded-2xl border border-borda sm:w-44"
           }`}
         >
           {valor !== "" ? (

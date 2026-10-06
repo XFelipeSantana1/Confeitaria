@@ -1,9 +1,19 @@
 // Base compartilhada das chamadas à API. Fica num arquivo só porque é o
 // único lugar que sabe: a URL base, o header de token e o formato do erro.
 
-const BASE: string =
-  (import.meta.env.VITE_API_URL as string | undefined) ||
-  "http://localhost:3000/api";
+/**
+ * Em desenvolvimento a base é RELATIVA ("/api"): o navegador pede para a
+ * própria origem do painel e o proxy do Vite repassa para o backend dentro do
+ * Codespaces (ver vite.config.ts). Isso é o que faz o login funcionar — a URL
+ * pública da API não serve, porque a porta 3000 é repassada como porta
+ * privada e o túnel responde 401 antes da requisição chegar no Express.
+ *
+ * No build de produção não existe proxy, então aí sim vale a URL do `.env`.
+ */
+const DO_AMBIENTE = import.meta.env.VITE_API_URL as string | undefined;
+const BASE: string = import.meta.env.DEV
+  ? "/api"
+  : DO_AMBIENTE || "http://localhost:3000/api";
 
 /** Erro com status HTTP, para a tela decidir a mensagem (401 expira sessão). */
 export class ErroApi extends Error {
@@ -59,6 +69,11 @@ export async function requisitar<T>(
  * O backend devolve um caminho relativo ("/uploads/x.jpg") porque ele não sabe
  * por qual host o painel está sendo acessado — no Codespaces o host muda a
  * cada sessão. Aqui o painel troca pela BASE, que é a mesma origem da API.
+ *
+ * Em desenvolvimento a BASE é "/api", então o `.replace` deixa a string vazia e
+ * o resultado é "/uploads/x.jpg": mesma origem do painel, e o proxy do Vite
+ * repassa. Não dá para usar a URL pública da API aqui pelas mesmas razões do
+ * login: a porta 3000 é privada e o túnel responde 401.
  */
 /**
  * Converte o TINYINT do MySQL em booleano de verdade.

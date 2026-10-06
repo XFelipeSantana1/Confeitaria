@@ -82,10 +82,21 @@ export function Cabecalho({
           </span>
           {/* `whitespace-nowrap` é o que impede a quebra do nome: sem ele, o
               navegador corta no espaço e o cabeçalho ganha uma segunda linha
-              (com o vão do subtítulo) em qualquer tela estreita ou deitada. */}
+              (com o vão do subtítulo) em qualquer tela estreita ou deitada.
+
+              E o subtítulo usa `mt-0`, e não `mt-1`: medindo os metrics reais
+              das fontes, o vão entre a tinta do título e a do subtítulo era de
+              7,1px para um título de apenas 10,6px de altura — quase do mesmo
+              tamanho que o próprio nome, o que abria a marca. Quem causa é o
+              `leading-none`: a caixa da linha (20px) é menor que a área da
+              fonte Playfair (26,7px), o texto transborda 3,3px para fora e
+              sobram 1,69px vazios embaixo da tinta, que o `mt-1` ainda
+              empurrava mais 4px. Sem a margem, o vão cai para 3,1px e
+              acompanha o tamanho da fonte em cada breakpoint (2,8px no
+              celular, 2,9px em sm, 3,1px no desktop). */}
           <span className="min-w-0 font-display text-base font-extrabold leading-none whitespace-nowrap sm:text-lg md:text-xl">
             Doce<em className="text-caramelo">&amp;</em> Carinho
-            <small className="mt-1 block font-corpo text-[10px] font-semibold tracking-[0.14em] whitespace-nowrap text-textoSuave uppercase">
+            <small className="mt-0 block font-corpo text-[10px] font-semibold tracking-[0.14em] whitespace-nowrap text-textoSuave uppercase">
               confeitaria artesanal
             </small>
           </span>
