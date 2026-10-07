@@ -1,13 +1,15 @@
-import { useRef } from "react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
 import { iconeParaCategoria } from "../lib/iconeCategoria";
 import type { Produto } from "../types";
 import { CardProduto } from "./CardProduto";
 
-// Uma categoria dentro do cardápio: cabeçalho assimétrico (ícone + nome
-// grande + contagem + filete). No celular vira carrossel com setas (cards
-// largos de ~80% da tela, snap suave); no desktop vira grid. As setas ficam
-// no cabeçalho, só no mobile — no desktop o grid mostra tudo de uma vez.
+// Uma categoria dentro do cardápio: cabeçalho assimétrico (ícone + nome grande
+// + contagem + filete) e a grade de doces.
+//
+// No celular é UMA coluna, não o carrossel lateral que existia antes. O
+// carrossel economiza rolagem vertical, mas esconde o resto da lista atrás de
+// um gesto que ninguém descobre sozinho, e a foto do doce ocupa 80% da largura
+// de cada card. Empilhando, a cliente rola uma coluna, vê todas as opções da
+// categoria e compara preço em uma passada vertical.
 interface PropriedadesGrupoCategoria {
   categoria: string;
   numero: string;
@@ -31,15 +33,6 @@ export function GrupoCategoria({
 }: PropriedadesGrupoCategoria): JSX.Element {
   const Icone = iconeParaCategoria(categoria);
   const rotulo = itens.length === 1 ? "1 delícia" : `${itens.length} delícias`;
-  const trilho = useRef<HTMLDivElement>(null);
-
-  // Rola ~80% da largura visível: mostra o próximo card em destaque parcial,
-  // insinuando que há mais para o lado (affordance do carrossel).
-  function rolar(direcao: 1 | -1): void {
-    const elemento = trilho.current;
-    if (!elemento) return;
-    elemento.scrollBy({ left: direcao * elemento.clientWidth * 0.8, behavior: "smooth" });
-  }
 
   return (
     <section id={identificador} className={`scroll-mt-40 ${espacamentoTopo}`}>
@@ -57,31 +50,14 @@ export function GrupoCategoria({
           {rotulo}
         </span>
         <span className="h-px min-w-6 flex-1 bg-borda" aria-hidden="true" />
-        <span className="flex flex-none gap-2 sm:hidden">
-          <button
-            onClick={() => rolar(-1)}
-            aria-label={`Ver doces anteriores de ${categoria}`}
-            className="grid h-9 w-9 place-items-center rounded-full border border-borda bg-white text-tinta shadow-sm transition-all active:scale-90"
-          >
-            <ChevronLeft size={18} />
-          </button>
-          <button
-            onClick={() => rolar(1)}
-            aria-label={`Ver próximos doces de ${categoria}`}
-            className="grid h-9 w-9 place-items-center rounded-full border border-borda bg-white text-tinta shadow-sm transition-all active:scale-90"
-          >
-            <ChevronRight size={18} />
-          </button>
-        </span>
       </div>
       <div
-        ref={trilho}
-        className="-mx-5 flex snap-x snap-mandatory gap-4 overflow-x-auto px-5 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:mx-0 sm:grid sm:grid-cols-2 sm:overflow-visible sm:px-0 lg:grid-cols-3 xl:grid-cols-4"
+        className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
       >
         {itens.map((produto) => (
           <div
             key={produto.id}
-            className="w-[80%] flex-none snap-center sm:w-auto sm:snap-align-none"
+            className="min-w-0"
           >
             <CardProduto
               produto={produto}

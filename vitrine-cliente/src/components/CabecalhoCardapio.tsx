@@ -20,15 +20,20 @@ export function CabecalhoCardapio({
   return (
     <div className="mb-2 flex flex-wrap items-end justify-between gap-3">
       <div>
-        <p className="inline-flex items-center gap-2 rounded-full bg-carameloForte px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-white">
-          <span aria-hidden="true" className="font-display text-sm leading-none">
-            §
-          </span>
-          nosso cardápio
-        </p>
-        <h2 className="mt-2 font-display text-3xl font-bold text-tinta md:text-4xl">
-          Escolha com calma, <em className="text-caramelo">coma com alegria.</em>
+        <h2 className="font-display text-3xl font-bold text-tinta md:text-4xl">
+          Nosso cardápio
         </h2>
+        {/* O selo "§ nosso cardápio" repetia o título logo abaixo, e a frase
+            "escolha com calma, coma com alegria" era mais uma frase de marca
+            onde a cliente já tinha lido o suficiente. O que fica é o que ela
+            precisa: onde está a lista e quantas opções tem. */}
+        <p className="mt-1 text-sm font-semibold text-textoSuave">
+          {carregando
+            ? "carregando…"
+            : `${totalExibido} ${totalExibido === 1 ? "doce" : "doces"}${
+                modoDemonstracao ? " em demonstração" : ""
+              }`}
+        </p>
       </div>
 
       {/* Contador e recarrega lado a lado: o botão fica onde o olho já está

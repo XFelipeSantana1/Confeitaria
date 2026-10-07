@@ -68,5 +68,11 @@ export interface EstadoCardapio {
 /** Rótulo especial da pílula "mostrar tudo", fora das categorias reais. */
 export const TODAS_CATEGORIAS = "todas";
 
-/** Estado da conexão exibido no topo (bolinha + rótulo). */
-export type EstadoApi = "carregando" | "online" | "demonstracao" | "erro";
+/**
+ * Não existe mais um "estado da API" para a vitrine mostrar.
+ *
+ * A bolinha verde com "API online" ocupava o lugar mais valuable da tela com
+ * informação de quem desenvolve. Se a conexão cair, o problema já aparece onde
+ * a cliente precisa saber: o `AlertaErro` ocupa o lugar do cardápio e o balão
+ * avisa que o que está na tela pode estar velho.
+ */

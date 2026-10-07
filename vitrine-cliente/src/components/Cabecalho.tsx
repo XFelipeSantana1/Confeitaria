@@ -1,31 +1,20 @@
 import { useEffect, useRef } from "react";
-import { Search, Settings2, ShoppingBasket } from "lucide-react";
-import type { EstadoApi } from "../types";
+import { Settings2, ShoppingBasket } from "lucide-react";
+import { BuscaCardapio } from "./BuscaCardapio";
 import { SimboloClaro } from "./Marca";
 
-export type { EstadoApi };
-
-// Barra fixa do topo: marca, busca, estado da API e acesso à sacola.
-// A busca some no mobile (espaço curto) — o filtro por categoria cobre o uso.
-const ROTULO_ESTADO: Record<EstadoApi, string> = {
-  carregando: "conectando…",
-  online: "API online",
-  demonstracao: "demonstração",
-  erro: "API fora do ar",
-};
-
-const COR_ESTADO: Record<EstadoApi, string> = {
-  carregando: "bg-amber-500",
-  online: "bg-green-700",
-  demonstracao: "bg-rose-600",
-  erro: "bg-rose-600",
-};
+// Barra fixa do topo: marca, busca e acesso à sacola.
+//
+// NÃO mostra o estado da API. "API online" é informação de quem desenvolve,
+// não de quem quer comprar doce: ocupa espaço na tela mais valuable do site e
+// obriga a cliente a ler algo que não pode fazer nada a respeito. A conexão
+// quebrada já aparece onde o problema existe — o `AlertaErro` no lugar do
+// cardápio e o balão "Mostrando o cardápio salvo" quando a recarga falha.
 
 interface PropriedadesCabecalho {
   termoBusca: string;
   aoMudarBusca: (termo: string) => void;
   unidadesSacola: number;
-  estadoApi: EstadoApi;
   aoAbrirSacola: () => void;
   aoAbrirConfiguracoes: () => void;
 }
@@ -34,7 +23,6 @@ export function Cabecalho({
   termoBusca,
   aoMudarBusca,
   unidadesSacola,
-  estadoApi,
   aoAbrirSacola,
   aoAbrirConfiguracoes,
 }: PropriedadesCabecalho): JSX.Element {
@@ -102,27 +90,14 @@ export function Cabecalho({
           </span>
         </a>
 
-        <div className="hidden flex-1 items-center gap-2 rounded-full border border-borda bg-white px-4 py-2 md:flex">
-          <Search size={17} className="text-textoSuave" />
-          <input
-            value={termoBusca}
-            onChange={(evento) => aoMudarBusca(evento.target.value)}
-            type="search"
-            placeholder="Buscar no cardápio… (ex: cone, morango)"
-            aria-label="Buscar no cardápio"
-            className="w-full bg-transparent font-corpo text-sm text-tinta outline-none placeholder:text-textoSuave/60"
-          />
-        </div>
+        {/* No desktop a busca ocupa o vão entre a marca e os botões. */}
+        <BuscaCardapio
+          termo={termoBusca}
+          aoMudar={aoMudarBusca}
+          className="hidden min-w-0 flex-1 md:flex"
+        />
 
-        <span
-          className="hidden items-center gap-2 rounded-full border border-borda bg-white px-3 py-2 text-xs text-textoSuave sm:flex"
-          title="Estado da conexão com o backend"
-        >
-          <span className={`h-2.5 w-2.5 rounded-full ${COR_ESTADO[estadoApi]}`} />
-          {ROTULO_ESTADO[estadoApi]}
-        </span>
-
-        {/* `shrink-0` nos três botões: sem isso eles encolhem e a marca é que
+        {/* `shrink-0` nos dois botões: sem isso eles encolhem e a marca é que
             cede espaço, que é o oposto do que se quer. */}
         <button
           onClick={aoAbrirConfiguracoes}
@@ -149,6 +124,16 @@ export function Cabecalho({
             {unidadesSacola}
           </b>
         </button>
+      </div>
+
+      {/* Busca em uma linha inteira, só no celular. Dentro do cabeçalho (e não
+          depois dele) para continuar alcançável depois de rolar: a cliente
+          que já está no meio do cardápio e lembra de "morango" não deveria ter
+          que voltar ao topo para procurar.
+          O `ResizeObserver` acima mede esta linha junto, então a pílula de
+          categorias continua pousando na altura certa sem número chutado. */}
+      <div className="px-5 pb-3 md:hidden">
+        <BuscaCardapio termo={termoBusca} aoMudar={aoMudarBusca} />
       </div>
     </header>
   );

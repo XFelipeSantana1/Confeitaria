@@ -57,13 +57,6 @@ body {
   }
 }
 
-/* Letreiro corrido: o trilho tem 2 cópias e anda metade (loop perfeito). */
-@keyframes letreiro {
-  to {
-    transform: translateX(-50%);
-  }
-}
-
 /* Pulo do contador da sacola: confirma o "adicionar" no topo sem toast extra. */
 @keyframes pulo {
   0% {

@@ -3,12 +3,11 @@ import { useCardapio } from "./hooks/useCardapio";
 import { useCarrinho } from "./hooks/useCarrinho";
 import { useAviso } from "./hooks/useAviso";
 import { usePedidoWhats } from "./hooks/usePedidoWhats";
-import { determinarEstadoApi } from "./lib/estadoApi";
+import { BarraSacola } from "./components/BarraSacola";
 import { Cabecalho } from "./components/Cabecalho";
 import { Abertura } from "./components/Abertura";
-import { FaixaRolante } from "./components/FaixaRolante";
+import { Destaques } from "./components/Destaques";
 import { SecaoCardapio } from "./components/SecaoCardapio";
-import { SecaoInformacoes } from "./components/SecaoInformacoes";
 import { Rodape } from "./components/Rodape";
 import { Camadas } from "./components/Camadas";
 
@@ -61,12 +60,6 @@ export default function App(): JSX.Element {
     }
   }, [cardapio.falhaNaAtualizacao, mostrarAviso]);
 
-  const estadoApi = determinarEstadoApi(
-    cardapio.carregando,
-    cardapio.erro,
-    cardapio.modoDemonstracao,
-  );
-
   // Fecha a sacola e leva de volta ao cardápio (usado pelo vazio que convida).
   function verCardapio(): void {
     definirSacolaAberta(false);
@@ -83,28 +76,26 @@ export default function App(): JSX.Element {
   }
 
   return (
-    <div id="topo" className="min-h-screen bg-creme font-corpo text-tinta">
+    // O `pb` só entra quando há sacola, porque é a barra fixa que ocupa esse
+    // espaço. Reserva fixa sem barra deixaria um vão morto no fim da
+    // página em toda visita.
+    <div
+      id="topo"
+      className={`min-h-screen bg-creme font-corpo text-tinta ${
+        unidades > 0 ? "pb-24 md:pb-0" : ""
+      }`}
+    >
       <Cabecalho
         termoBusca={termoBusca}
         aoMudarBusca={definirBusca}
         unidadesSacola={unidades}
-        estadoApi={estadoApi}
         aoAbrirSacola={() => definirSacolaAberta(true)}
         aoAbrirConfiguracoes={() => definirConfigAberto(true)}
       />
 
-      <Abertura
-        totalProdutos={produtos.length}
-        totalCategorias={categorias.length}
-        menorPreco={
-          produtos.length > 0
-            ? Math.min(...produtos.map((produto) => produto.preco))
-            : null
-        }
-        aoComoFunciona={() => definirAjudaAberta(true)}
-      />
+      <Abertura aoComoFunciona={() => definirAjudaAberta(true)} />
 
-      <FaixaRolante />
+      <Destaques />
 
       <SecaoCardapio
         produtos={buscados}
@@ -118,7 +109,6 @@ export default function App(): JSX.Element {
         aoLimparBusca={() => definirBusca("")}
       />
 
-      <SecaoInformacoes />
       <Rodape
         secoes={categorias}
         aoAbrirConfiguracoes={() => definirConfigAberto(true)}
@@ -143,6 +133,12 @@ export default function App(): JSX.Element {
         aoFecharConfiguracoes={() => definirConfigAberto(false)}
         aoSalvarConfiguracoes={salvarConfiguracoes}
         aoFecharAjuda={() => definirAjudaAberta(false)}
+      />
+
+      <BarraSacola
+        unidades={unidades}
+        total={total}
+        aoAbrir={() => definirSacolaAberta(true)}
       />
     </div>
   );

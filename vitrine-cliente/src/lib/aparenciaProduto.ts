@@ -1,51 +1,35 @@
 import type { Produto } from "../types";
 
-// Fotos verificadas uma a uma (todas retornam 200 image/jpeg no CDN do
-// Unsplash). Hierarquia de imagem do produto:
-//   1. `imagem_url` cadastrada no painel (foto real da casa) — sempre vence;
-//   2. foto curada por palavra-chave/categoria (doces reais, não ilustração);
-//   3. emoji + gradiente (último recurso, ex: se o CDN estiver fora do ar).
+// Hierarquia da imagem de um doce:
+//   1. `imagem_url` — a foto que a confeiteira subiu pelo painel. Sempre
+//      vence, e é a única que pode ser garantida como sendo aquele doce;
+//   2. foto curada — UMA foto só, conferida com o olho: trufas ao
+//      natural, que é doce de chocolate e serve para as trufas da casa;
+//   3. `null` — o card desenha o próprio emoji com gradiente da marca.
+//
+// A etapa 3 é maior do que parece. Existe foto de graça no Unsplash e foi
+// tentada: quatro URLs responderam 200 e, abertas, DUAS mostravam outra coisa
+// (cupcakes azuis no lugar de um cone, bolo de framboesa no lugar de um doce
+// de morango). O CDN responde 200 para foto já removida do catálogo, então
+// "a URL abre" não prova nada. Mapear "pão de mel" para uma foto de trufa só
+// porque as duas são escuras e massudas parece tempting, e a cliente recebe
+// outra coisa. Sem foto, o card não mente.
 const foto = (id: string): string =>
   `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&w=800&q=80`;
 
 const FOTO_TRUFA = foto("1549007994-cb92caebd54b");
-const FOTO_GRANULADO = foto("1486427944299-d1955d23e34d");
-const FOTO_MORANGO = foto("1565958011703-44f9829ba187");
-const FOTO_BOLO = foto("1578985545062-69928b1d9587");
-const FOTO_TACA = foto("1563805042-7684c019e1cb");
-const FOTO_SALGADO = foto("1601050690597-df0568f70950");
 
 export function imagemParaProduto(produto: Produto): string | null {
   if (produto.imagemUrl) return produto.imagemUrl;
-  const nome = produto.nome.toLowerCase();
-  if (nome.includes("morango")) return FOTO_MORANGO;
-  if (nome.includes("brigadeiro") || nome.includes("trufa")) return FOTO_TRUFA;
-  if (nome.includes("bolo") || nome.includes("torta")) return FOTO_BOLO;
-  if (nome.includes("cone")) return FOTO_GRANULADO;
-  if (
-    nome.includes("mousse") ||
-    nome.includes("pave") ||
-    nome.includes("pavê") ||
-    nome.includes("taca") ||
-    nome.includes("taça")
-  ) {
-    return FOTO_TACA;
-  }
-  if (
-    nome.includes("coxinha") ||
-    nome.includes("salgad") ||
-    nome.includes("empada") ||
-    nome.includes("pastel")
-  ) {
-    return FOTO_SALGADO;
-  }
-  // Produto sem categoria não tem texto para comparar: cai na foto padrão em
-  // vez de quebrar em produto.categoria.toLowerCase().
+
+  // A categoria vem antes do nome: "Trufa de maracujá" é trufa, e não o doce
+  // de morango que a palavra-chave traria.
   const categoria = produto.categoria?.toLowerCase() ?? "";
-  if (categoria.includes("bolo")) return FOTO_BOLO;
-  if (categoria.includes("salg")) return FOTO_SALGADO;
-  if (categoria.includes("doce")) return FOTO_GRANULADO;
-  return FOTO_TRUFA;
+  if (categoria.includes("trufa")) return FOTO_TRUFA;
+
+  const nome = produto.nome.toLowerCase();
+  if (nome.includes("trufa") || nome.includes("brigadeiro")) return FOTO_TRUFA;
+  return null;
 }
 
 // Emoji + gradiente estáveis por id: aparecem enquanto a foto carrega ou se

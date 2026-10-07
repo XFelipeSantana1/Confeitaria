@@ -2,6 +2,12 @@ CREATE DATABASE IF NOT EXISTS confeitaria_db
   CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 USE confeitaria_db;
 
+-- Carregue este arquivo (e o `seed.sql`) com o cliente MySQL já em utf8mb4:
+--   mysql --default-character-set=utf8mb4 -u api_user -p<SENHA> confeitaria_db < schema.sql
+-- Sem a opção, o cliente negocia latin1 e todo acento entra duplo-codificado
+-- ("Pão de mel" vira "PÃ£o de mel"). As TABELAS já são utf8mb4; o que faltava
+-- era o lado do cliente.
+
 -- O schema roda inteiro contra uma base ja existente (e reaplicado a cada
 -- setup), entao toda tabela precisa de IF NOT EXISTS. Sem isso o script morre
 -- na segunda execucao e as tabelas novas nunca sao criadas.
