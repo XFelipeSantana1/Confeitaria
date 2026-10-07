@@ -1,9 +1,14 @@
-# Banco do projeto em container. A senha NÃO está aqui: vem do `.env` da raiz
-# (que é ignorado pelo Git). Sem aquele arquivo, o `docker compose up` falha
-# com uma mensagem dizendo qual variável falta — de propósito, porque um
-# `valor-padrão` no compose é senha publicada junto com o código.
+# Banco do projeto em container.
 #
-#   cp .env.example .env   (na raiz)   e preencha MYSQL_PASSWORD etc.
+# As credenciais NÃO estão neste arquivo: vêm do `.env` da raiz, que é
+# versionado (o repositório é privado e os valores são de desenvolvimento local).
+# O `:?` abaixo faz o Compose PARAR com o nome da variável que falta, em vez de
+# subir com uma senha vazia — e o motivo de não ter um `valor-padrão` aqui é
+# que padrão no compose vira senha escrita junto do código.
+#
+# Para subir do zero: o `.env` já vem no repositório, então basta
+#
+#   docker compose up -d
 
 services:
   mysql:
@@ -20,8 +25,12 @@ services:
       - "3306:3306"
     volumes:
       # Volume nomeado: sem ele, um `docker compose down` apaga o banco.
-      # (As FOTOS não estão aqui: o backend roda na máquina e as guarda em
-      # `backend/uploads`. Ver a seção "Estrutura" do README.)
+      #
+      # As FOTOS ficam fora, em `backend/uploads`, porque o backend roda na
+      # máquina (não em container) — o que significa que elas somem quando o
+      # disco é limpo, mesmo com o banco inteiro. É a pendência conhecida do
+      # projeto: enquanto o backend não entrar no Compose, foto nova não
+      # sobrevive a recriação da máquina. Ver a seção "Pendências" do README.
       - mysql_data:/var/lib/mysql
 
 volumes:
